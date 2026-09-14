@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HangeulDuo (한글듀오) - O'zbekcha-Koreyscha Interaktiv Ta'lim</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦉</text></svg>">
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <header class="navbar">
+    <div class="nav-brand" onclick="location.reload()">
+      <div class="nav-logo-icon">🦉</div>
+      <div class="brand-text">
+        <h1>HangeulDuo</h1>
+        <span>한글듀오 • O'zbekcha-Koreyscha</span>
+      </div>
+    </div>
+
+    <!-- NAVIGATION SHORTCUTS -->
+    <nav class="nav-tabs">
+      <button class="nav-tab-btn" onclick="showAlphabetChart()">
+        <span>🔤</span> Alifbo Jadvali
+      </button>
+      <button class="nav-tab-btn" onclick="showWordbook()">
+        <span>📖</span> Lug'at (30+ So'z)
+      </button>
+      <button class="nav-tab-btn" onclick="showSyllabus()">
+        <span>📋</span> Kurs Qoidalari
+      </button>
+    </nav>
+
+    <!-- STATS (STREAK, XP, HEARTS) -->
+    <div class="nav-stats">
+      <div class="stat-pill streak" title="Ketma-ket kunlik o'rganish">
+        <span>🔥</span>
+        <span id="statStreak">1</span>
+      </div>
+      <div class="stat-pill xp" title="To'plangan XP ballar">
+        <span>⭐</span>
+        <span id="statXP">0</span>
+      </div>
+      <div class="stat-pill hearts" id="heartsPill" onclick="state.refillHearts()" title="Jonlaringiz soni (bosing - to'ldirish)">
+        <span>❤️</span>
+        <span id="statHearts">5</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LEARNING APP CONTAINER -->
+  <main class="app-container">
+    
+    <!-- TRACK SELECTION HEADER -->
+    <section class="track-header">
+      <div class="track-info">
+        <h2>Koreys Tili & Ma'ruzalar Kursi (Basic Korean 1)</h2>
+        <p>Ma'ruzalardagi alifbo, so'zlar va Koreya madaniyatini Duolingo uslubida o'rganing</p>
+      </div>
+
+      <div class="track-selector">
+        <button class="track-btn active" data-track="all">Barchasi</button>
+        <button class="track-btn" data-track="alphabet">🅰️ Alifbo</button>
+        <button class="track-btn" data-track="words">💬 So'zlar</button>
+        <button class="track-btn" data-track="culture">🇰🇷 Koreya & Quiz</button>
+      </div>
+    </section>
+
+    <!-- LEARNING PATH (DUOLINGO STYLE) -->
+    <section class="learning-path" id="pathContainer">
+      <!-- Generated via app.js -->
+    </section>
+
+  </main>
+
+  <!-- ================= EXERCISE VIEW (OVERLAY) ================= -->
+  <div class="exercise-view" id="exerciseView" style="display: none;">
+    
+    <!-- EXERCISE HEADER -->
+    <div class="exercise-header">
+      <button class="close-btn" id="closeExerciseBtn" title="Chiqish">✕</button>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="exerciseProgress"></div>
+      </div>
+      <div class="exercise-hearts" title="Jonlar">
+        <span>❤️</span>
+        <span id="exerciseHeartsCount">5</span>
+      </div>
+    </div>
+
+    <!-- EXERCISE CONTENT (BODY) -->
+    <div class="exercise-content" id="exerciseContent">
+      <!-- Steps rendered here: Theory, Multiple choice, Audio listening, Match pairs, Builder, Stroke canvas -->
+    </div>
+
+    <!-- BOTTOM EVALUATION BAR -->
+    <div class="eval-bar" id="evalBar">
+      <div class="eval-inner" id="evalInner">
+        <div class="eval-feedback" id="evalFeedback">
+          <!-- Feedback rendered on check: correct green or wrong red -->
+        </div>
+        <button class="btn-primary" id="evalActionBtn" disabled>Tekshirish</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= CELEBRATION MODAL ================= -->
+  <div class="modal-overlay" id="celebrationModal" style="display: none;">
+    <div class="modal-card" style="text-align: center;">
+      <img src="images/image18.png" class="celebration-banner-img" alt="수고하셨어요!" onerror="this.src='images/image4.jpeg'">
+      <h2 style="font-size: 1.8rem; font-weight: 900; color: var(--primary-green-dark); margin-bottom: 6px;" id="celebrationTitle">Dars Yakunlandi!</h2>
+      <p style="color: var(--text-dark); font-weight: 700; font-size: 1.1rem; margin-bottom: 20px;">
+        수고하셨어요! Bugun ham ajoyib natija ko'rsatdingiz! 🎉
+      </p>
+
+      <div class="stats-grid-modal">
+        <div class="modal-stat-box">
+          <div class="modal-stat-value" id="celebrationXP">+60 XP</div>
+          <div class="modal-stat-label">Olingan Ball</div>
+        </div>
+        <div class="modal-stat-box">
+          <div class="modal-stat-value" id="celebrationAcc">100%</div>
+          <div class="modal-stat-label">Aniqlik</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="closeCelebrationBtn" style="width: 100%;">Davom etish 🚀</button>
+    </div>
+  </div>
+
+  <!-- ================= OUT OF HEARTS MODAL ================= -->
+  <div class="modal-overlay" id="outOfHeartsModal" style="display: none;">
+    <div class="modal-card" style="text-align: center; max-width: 440px;">
+      <div style="font-size: 64px; margin-bottom: 12px;">💔</div>
+      <h3 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 8px;">Jonlaringiz tugadi!</h3>
+      <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 24px;">
+        Xavotir olmang! Shirin ustoz darsida xatolar o'rganish uchun imkoniyatdir. Jonlaringizni to'ldirib davom eting!
+      </p>
+      <button class="btn-primary" id="refillHeartsBtn" style="width: 100%; background: var(--primary-red); box-shadow: 0 5px 0 var(--primary-red-dark);">
+        ❤️ Jonlarni to'ldirish (5/5)
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= ALPHABET CHART MODAL ================= -->
+  <div class="modal-overlay" id="alphabetModal" style="display: none;">
+    <div class="modal-card" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3>Koreys Alifbosi (Hangul) To'liq Jadvali</h3>
+        <button class="close-btn modal-close-x">✕</button>
+      </div>
+      
+      <h4 style="font-weight: 900; color: var(--primary-green-dark); margin-top: 10px;">10 ta Oddiy Unlilar (모음):</h4>
+      <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">Talaffuzni eshitish uchun istalgan harf ustiga bosing:</p>
+      <div class="chart-grid" id="vowelsChartGrid"></div>
+
+      <h4 style="font-weight: 900; color: var(--primary-blue-dark); margin-top: 24px;">14 ta Oddiy Undoshlar (자음):</h4>
+      <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">Nutq a'zolari shakliga asoslangan undoshlar:</p>
+      <div class="chart-grid" id="consonantsChartGrid"></div>
+    </div>
+  </div>
+
+  <!-- ================= WORDBOOK MODAL ================= -->
+  <div class="modal-overlay" id="wordbookModal" style="display: none;">
+    <div class="modal-card" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3>Ma'ruzalardagi Barcha So'zlar Lug'ati (30+ So'z)</h3>
+        <button class="close-btn modal-close-x">✕</button>
+      </div>
+      <input type="text" class="wordbook-search" placeholder="Qidirish (koreyscha, o'zbekcha yoki talaffuzi)..." oninput="filterWordbook(this.value)">
+      <div class="word-card-list" id="wordbookList"></div>
+    </div>
+  </div>
+
+  <!-- ================= SYLLABUS & COURSE RULES MODAL ================= -->
+  <div class="modal-overlay" id="syllabusModal" style="display: none;">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>Basic Korean 1 — Kurs Talablari & Qoidalari</h3>
+        <button class="close-btn modal-close-x">✕</button>
+      </div>
+      <div id="syllabusModalBody"></div>
+    </div>
+  </div>
+
+  <!-- CONFETTI CANVAS -->
+  <canvas id="confettiCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 1000;"></canvas>
+
+  <!-- SCRIPTS -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
