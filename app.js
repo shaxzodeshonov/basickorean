@@ -1,156 +1,193 @@
 // ==========================================
-// HANGEULDUO (한글듀오) - APP ENGINE
-// Audio FX, Speech Synthesis, Game State, Duolingo Runner
+// HANGEUL SAYOHATI (한글 여행) - APP ENGINE
+// Modern, responsive, zero-emoji, clean architecture
 // ==========================================
 
-// --- 1. AUDIO ENGINE (Web Audio API & Speech Synthesis) ---
-class SoundEffects {
+// --- 1. CLEAN STATIC SVG ICONS (NO EMOJIS) ---
+const ICONS = {
+  play: `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>`,
+  lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+  speaker: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`,
+  timer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 8 14"></polyline></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
+  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+};
+
+// --- 2. AUDIO SYNTHESIZER & SPEECH TTS ---
+class SoundManager {
   constructor() {
     this.ctx = null;
-    this.muted = false;
   }
 
-  initContext() {
+  init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === "suspended") {
       this.ctx.resume();
     }
   }
 
-  playTone(freq, type, duration, delay = 0, gainVal = 0.15) {
-    if (this.muted) return;
-    this.initContext();
+  click() {
+    this.init();
     if (!this.ctx) return;
-
-    setTimeout(() => {
-      try {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
-      } catch (e) {
-        console.warn("Audio error", e);
-      }
-    }, delay);
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.05);
   }
 
   correct() {
-    // Joyful dual chime C5 -> G5
-    this.playTone(523.25, 'triangle', 0.12, 0, 0.2);
-    this.playTone(783.99, 'triangle', 0.25, 100, 0.25);
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = "triangle";
+    osc2.type = "sine";
+
+    osc1.frequency.setValueAtTime(523.25, t); // C5
+    osc1.frequency.setValueAtTime(659.25, t + 0.1); // E5
+    osc2.frequency.setValueAtTime(1046.50, t + 0.15); // C6
+
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc1.start(t);
+    osc2.start(t + 0.1);
+    osc1.stop(t + 0.45);
+    osc2.stop(t + 0.45);
   }
 
   wrong() {
-    // Gentle error boop F3 -> D3
-    this.playTone(174.61, 'sine', 0.15, 0, 0.25);
-    this.playTone(146.83, 'sine', 0.25, 120, 0.25);
-  }
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
 
-  click() {
-    this.playTone(600, 'sine', 0.04, 0, 0.08);
-  }
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.setValueAtTime(164.81, t + 0.12);
 
-  match() {
-    this.playTone(659.25, 'triangle', 0.1, 0, 0.15);
-    this.playTone(880, 'triangle', 0.15, 70, 0.2);
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + 0.35);
   }
 
   fanfare() {
-    // Victory fanfare
+    this.init();
+    if (!this.ctx) return;
     const notes = [523.25, 659.25, 783.99, 1046.50];
-    notes.forEach((freq, idx) => {
-      this.playTone(freq, 'triangle', 0.3, idx * 110, 0.25);
+    notes.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const st = this.ctx.currentTime + (i * 0.1);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, st);
+      gain.gain.setValueAtTime(0.15, st);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(st);
+      osc.stop(st + 0.35);
     });
   }
 }
 
-const sfx = new SoundEffects();
+const sfx = new SoundManager();
 
-// Korean Text-To-Speech (Web Speech API)
-function speakKorean(text, rate = 0.9) {
-  sfx.initContext();
-  if (!('speechSynthesis' in window)) return;
+function speakKorean(text, rate = 0.85) {
+  if (!("speechSynthesis" in window)) {
+    sfx.click();
+    return;
+  }
   window.speechSynthesis.cancel();
-
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ko-KR';
+  utterance.lang = "ko-KR";
   utterance.rate = rate;
-  utterance.pitch = 1.0;
 
-  // Try to find native Korean voice
   const voices = window.speechSynthesis.getVoices();
-  const koVoice = voices.find(v => v.lang.startsWith('ko') || v.name.includes('Korean') || v.name.includes('Yuna') || v.name.includes('Heami'));
+  const koVoice = voices.find(v => v.lang.startsWith("ko"));
   if (koVoice) utterance.voice = koVoice;
 
   window.speechSynthesis.speak(utterance);
 }
 
-// Ensure voices are loaded
-if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => {
-    window.speechSynthesis.getVoices();
-  };
+// Ensure voices preloaded
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }
 
-// --- 2. GAME STATE MANAGEMENT ---
-const STORAGE_KEY = "HANGEUL_DUO_PROGRESS_V1";
-
+// --- 3. APPLICATION STATE ---
 class AppState {
   constructor() {
-    this.xp = 0;
-    this.streak = 1;
+    this.stars = 0;
     this.hearts = 5;
     this.maxHearts = 5;
-    this.unlockedLessons = ["lesson_1_1", "lesson_2_1", "lesson_3_1"];
     this.completedLessons = [];
-    this.currentTrack = "all"; // 'all', 'alphabet', 'words', 'culture'
+    this.unlockedLessons = ["lesson_1_1"];
+    this.freeMode = true; // Default true: All lessons accessible immediately
+    this.activeTab = "path";
     this.load();
   }
 
   load() {
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (data) {
-        const parsed = JSON.parse(data);
-        this.xp = parsed.xp || 0;
-        this.streak = parsed.streak || 1;
-        this.hearts = parsed.hearts !== undefined ? parsed.hearts : 5;
-        this.unlockedLessons = parsed.unlockedLessons || ["lesson_1_1", "lesson_2_1", "lesson_3_1"];
-        this.completedLessons = parsed.completedLessons || [];
+      const saved = localStorage.getItem("hangeul_duo_state_v2");
+      if (saved) {
+        const obj = JSON.parse(saved);
+        this.stars = obj.stars || 0;
+        this.hearts = obj.hearts !== undefined ? obj.hearts : 5;
+        this.completedLessons = obj.completedLessons || [];
+        this.unlockedLessons = obj.unlockedLessons || ["lesson_1_1"];
+        if (obj.freeMode !== undefined) this.freeMode = obj.freeMode;
       }
     } catch (e) {
-      console.warn("Storage load error", e);
+      console.warn("Local storage read error", e);
     }
   }
 
   save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        xp: this.xp,
-        streak: this.streak,
+      localStorage.setItem("hangeul_duo_state_v2", JSON.stringify({
+        stars: this.stars,
         hearts: this.hearts,
+        completedLessons: this.completedLessons,
         unlockedLessons: this.unlockedLessons,
-        completedLessons: this.completedLessons
+        freeMode: this.freeMode
       }));
     } catch (e) {
-      console.warn("Storage save error", e);
+      console.warn("Local storage save error", e);
     }
-    this.updateStatsUI();
+    this.updateHeaderStats();
   }
 
-  addXP(amount) {
-    this.xp += amount;
+  addStars(n) {
+    this.stars += n;
     this.save();
   }
 
@@ -165,15 +202,17 @@ class AppState {
   refillHearts() {
     this.hearts = this.maxHearts;
     this.save();
+    sfx.correct();
+    const modal = document.getElementById("heartsModal");
+    if (modal) modal.style.display = "none";
   }
 
-  completeLesson(lessonId) {
-    if (!this.completedLessons.includes(lessonId)) {
-      this.completedLessons.push(lessonId);
+  completeLesson(id) {
+    if (!this.completedLessons.includes(id)) {
+      this.completedLessons.push(id);
     }
-    // Unlock next lesson in line
     const allIds = HANGEUL_DATA.lessons.map(l => l.id);
-    const currIdx = allIds.indexOf(lessonId);
+    const currIdx = allIds.indexOf(id);
     if (currIdx !== -1 && currIdx + 1 < allIds.length) {
       const nextId = allIds[currIdx + 1];
       if (!this.unlockedLessons.includes(nextId)) {
@@ -183,57 +222,451 @@ class AppState {
     this.save();
   }
 
-  updateStatsUI() {
-    const xpEl = document.getElementById("statXP");
-    const streakEl = document.getElementById("statStreak");
-    const heartsEl = document.getElementById("statHearts");
+  updateHeaderStats() {
+    const starEl = document.getElementById("headerStarCount");
+    const progEl = document.getElementById("headerProgressCount");
+    const heartsEl = document.getElementById("headerHeartsCount");
 
-    if (xpEl) xpEl.innerText = this.xp;
-    if (streakEl) streakEl.innerText = this.streak;
-    if (heartsEl) heartsEl.innerText = this.hearts;
+    const total = HANGEUL_DATA.lessons.length;
+    const completed = this.completedLessons.length;
+
+    if (starEl) starEl.innerText = this.stars;
+    if (progEl) progEl.innerText = `${completed}/${total}`;
+    if (heartsEl) heartsEl.innerText = `${this.hearts}/${this.maxHearts}`;
   }
 }
 
 const state = new AppState();
 
-// --- 3. DUOLINGO EXERCISE RUNNER ---
+// --- 4. SEAMLESS TAB NAVIGATION (NO POPUP MODALS) ---
+function switchTab(tabName) {
+  sfx.click();
+  state.activeTab = tabName;
+
+  // Update tab buttons
+  document.querySelectorAll(".segment-btn").forEach(btn => {
+    const isTarget = btn.dataset.tab === tabName;
+    btn.classList.toggle("active", isTarget);
+    btn.setAttribute("aria-selected", isTarget ? "true" : "false");
+  });
+
+  // Switch view sections
+  const tabs = ["path", "soundboard", "wordbook", "syllabus"];
+  tabs.forEach(t => {
+    const viewEl = document.getElementById(`view-${t}`);
+    if (viewEl) {
+      viewEl.style.display = t === tabName ? "block" : "none";
+      if (t === tabName) viewEl.classList.add("active");
+    }
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (tabName === "soundboard") renderSoundboard();
+  if (tabName === "wordbook") renderWordbook();
+  if (tabName === "syllabus") renderSyllabus();
+}
+
+// --- 5. RENDER LEARNING PATH (ROADMAP) ---
+function renderPath() {
+  const container = document.getElementById("pathSectionsContainer");
+  if (!container) return;
+
+  let html = "";
+
+  HANGEUL_DATA.sections.forEach(sec => {
+    const secLessons = HANGEUL_DATA.lessons.filter(l => sec.lessonIds.includes(l.id));
+    const completedCount = secLessons.filter(l => state.completedLessons.includes(l.id)).length;
+    const totalCount = secLessons.length;
+
+    let nodesHtml = "";
+    secLessons.forEach((lesson, idx) => {
+      const isCompleted = state.completedLessons.includes(lesson.id);
+      const isUnlocked = state.freeMode || state.unlockedLessons.includes(lesson.id);
+
+      let btnClass = "locked";
+      let btnIcon = ICONS.lock;
+
+      if (isCompleted) {
+        btnClass = "completed";
+        btnIcon = ICONS.check;
+      } else if (isUnlocked) {
+        btnClass = "unlocked";
+        btnIcon = ICONS.play;
+      }
+
+      // Bold connecting line between sequential nodes
+      if (idx > 0) {
+        const prevLesson = secLessons[idx - 1];
+        const prevCompleted = state.completedLessons.includes(prevLesson.id);
+        nodesHtml += `
+          <div class="path-connector ${prevCompleted ? "completed" : ""}"></div>
+        `;
+      }
+
+      nodesHtml += `
+        <div class="node-item">
+          <button class="node-button ${btnClass}" ${!isUnlocked ? "disabled" : ""} onclick="startLesson('${lesson.id}')" title="${lesson.title}">
+            ${btnIcon}
+          </button>
+          <div class="node-title">${lesson.title}</div>
+          <div class="node-subtitle">${lesson.subTitle}</div>
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="section-block">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <h2>${sec.title}</h2>
+            <span>${sec.korean}</span>
+          </div>
+          <div class="section-progress-pill">${completedCount}/${totalCount} bajarildi</div>
+        </div>
+        <div class="nodes-container">
+          ${nodesHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  updateFreeModeUI();
+}
+
+function toggleFreeMode() {
+  sfx.click();
+  state.freeMode = !state.freeMode;
+  state.save();
+  renderPath();
+}
+
+function updateFreeModeUI() {
+  const box = document.getElementById("freeModeCheckbox");
+  const label = document.getElementById("freeModeLabel");
+  if (box) {
+    box.classList.toggle("checked", state.freeMode);
+  }
+  if (label) {
+    label.innerText = state.freeMode ? "Erkin rejim (Hammasi ochiq)" : "Ketma-ket rejim";
+  }
+}
+
+// --- 6. RENDER SOUNDBOARD TAB (ALIFBO) ---
+let soundboardRendered = false;
+let currentAlphabetFilter = "all";
+
+function renderSoundboard() {
+  if (soundboardRendered) return;
+  soundboardRendered = true;
+
+  const vowelsGrid = document.getElementById("vowelsGrid");
+  const consonantsGrid = document.getElementById("consonantsGrid");
+
+  if (vowelsGrid) {
+    vowelsGrid.innerHTML = HANGEUL_DATA.vowels.map(v => `
+      <div class="soundboard-card" onclick="speakLetter('${v.char}', '${v.name}')" title="${v.uz}">
+        <div class="soundboard-char">${v.char}</div>
+        <div class="soundboard-rom">[${v.rom}]</div>
+        <div class="soundboard-sub">${v.uz}</div>
+      </div>
+    `).join("");
+  }
+
+  if (consonantsGrid) {
+    consonantsGrid.innerHTML = HANGEUL_DATA.consonants.map(c => `
+      <div class="soundboard-card" onclick="speakLetter('${c.char}', '${c.name}')" title="${c.organ}">
+        <div class="soundboard-char">${c.char}</div>
+        <div class="soundboard-rom">[${c.sound}]</div>
+        <div class="soundboard-sub">${c.uz}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function speakLetter(char, name) {
+  sfx.click();
+  speakKorean(char);
+}
+
+function filterAlphabet(filter) {
+  sfx.click();
+  currentAlphabetFilter = filter;
+  document.querySelectorAll("#alphabetFilterRow .filter-pill").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("onclick").includes(filter));
+  });
+
+  const vBlock = document.getElementById("vowelsBlock");
+  const cBlock = document.getElementById("consonantsBlock");
+
+  if (vBlock) vBlock.style.display = (filter === "all" || filter === "vowels") ? "block" : "none";
+  if (cBlock) cBlock.style.display = (filter === "all" || filter === "consonants") ? "block" : "none";
+}
+
+// --- 7. RENDER WORDBOOK TAB (LUG'AT) ---
+let wordbookRendered = false;
+
+function renderWordbook(filterQuery = "") {
+  wordbookRendered = true;
+  const stack = document.getElementById("wordbookStack");
+  const countBadge = document.getElementById("wordbookCountBadge");
+  const clearBtn = document.getElementById("searchClearBtn");
+
+  if (!stack) return;
+
+  const q = filterQuery.trim().toLowerCase();
+  if (clearBtn) clearBtn.style.display = q ? "flex" : "none";
+
+  const filtered = HANGEUL_DATA.words.filter(w => {
+    if (!q) return true;
+    return w.korean.toLowerCase().includes(q) ||
+           w.uzbek.toLowerCase().includes(q) ||
+           w.rom.toLowerCase().includes(q) ||
+           w.category.toLowerCase().includes(q);
+  });
+
+  if (countBadge) {
+    countBadge.innerText = `Jami: ${filtered.length} ta so'z`;
+  }
+
+  if (filtered.length === 0) {
+    stack.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-lg);">
+        <span class="svg-icon" style="width: 36px; height: 36px; margin-bottom: 10px; color: #a1a1aa;">${ICONS.search}</span>
+        <p style="font-weight: 700; font-size: 1.05rem;">So'z topilmadi</p>
+        <p style="font-size: 0.85rem; margin-top: 4px;">Boshqa so'z yoki iborani qidirib ko'ring</p>
+      </div>
+    `;
+    return;
+  }
+
+  stack.innerHTML = filtered.map(w => {
+    const imgSrc = w.image ? `images/${w.image}` : `images/image14.png`;
+    return `
+      <div class="word-card-row">
+        <div class="word-meta">
+          <img src="${imgSrc}" class="word-thumb-img" alt="${w.korean}" onerror="this.src='images/image14.png'">
+          <div class="word-texts">
+            <div class="word-ko-row">
+              <span class="word-ko">${w.korean}</span>
+              <span class="word-rom">[${w.rom}] • ${w.trans}</span>
+            </div>
+            <div class="word-uz">${w.uzbek}</div>
+            <div class="word-note">${w.note || w.category}</div>
+          </div>
+        </div>
+        <button class="word-audio-btn" onclick="playWordAudio('${w.korean}')" title="Tinglash">
+          ${ICONS.speaker}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function filterWords(val) {
+  renderWordbook(val);
+}
+
+function clearWordSearch() {
+  const input = document.getElementById("wordSearchInput");
+  if (input) {
+    input.value = "";
+    input.focus();
+  }
+  renderWordbook("");
+}
+
+function playWordAudio(text) {
+  sfx.click();
+  speakKorean(text);
+}
+
+// --- 8. RENDER SYLLABUS TAB (QO'LLANMA) ---
+let syllabusRendered = false;
+
+function renderSyllabus() {
+  if (syllabusRendered) return;
+  syllabusRendered = true;
+
+  const container = document.getElementById("syllabusContentArea");
+  if (!container) return;
+
+  const c = HANGEUL_DATA.courseInfo;
+
+  const gradingRows = c.grading.map(g => `
+    <tr>
+      <td><b>${g.item}</b></td>
+      <td style="color: var(--accent-blue); font-weight: 800;">${g.weight}</td>
+      <td style="font-size: 0.82rem; color: var(--text-muted);">${g.detail}</td>
+    </tr>
+  `).join("");
+
+  const scaleRows = c.gradeScale.map(s => `
+    <tr>
+      <td><b>${s.grade}</b></td>
+      <td style="font-weight: 800;">${s.range}</td>
+      <td style="font-size: 0.82rem; color: var(--text-muted);">${s.quota}</td>
+    </tr>
+  `).join("");
+
+  const penaltiesHtml = c.penalties.map(p => `
+    <li class="penalty-item">
+      <span class="svg-icon" style="width: 16px; height: 16px;">${ICONS.alert}</span>
+      <span>${p}</span>
+    </li>
+  `).join("");
+
+  container.innerHTML = `
+    <!-- COURSE INFO CARD -->
+    <div class="syllabus-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;">
+        <div>
+          <span class="group-badge">MA'RUZA ASOSLARI</span>
+          <h3 style="margin-top: 8px; font-size: 1.35rem;">${c.name} — ${c.subName}</h3>
+          <p style="color: var(--text-muted); font-weight: 600; margin-top: 4px;">
+            O'qituvchi: <b>${c.teacher}</b> • Xona: <b>${c.office}</b>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRADING CRITERIA -->
+    <div class="syllabus-card">
+      <h3>Baholash Mezonlari (100% Ball)</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">1-ma'ruzaning 7-slaydidagi rasmiy baholash tartibi:</p>
+      <table class="syllabus-table">
+        <thead>
+          <tr>
+            <th>Imtihon turi</th>
+            <th>Ulushi</th>
+            <th>Tafsilot</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${gradingRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- STRICT PENALTIES -->
+    <div class="syllabus-card">
+      <h3 style="color: #b91c1c;">Darsdagi Jarimalar (-2 Ball)</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Har bir quyidagi qoidabuzarlik uchun umumiy balldan 2 ball chegiriladi:</p>
+      <ul class="penalties-list">
+        ${penaltiesHtml}
+      </ul>
+    </div>
+
+    <!-- GRADE SCALE -->
+    <div class="syllabus-card">
+      <h3>Baholar Shkalasi (Grade Scale)</h3>
+      <table class="syllabus-table">
+        <thead>
+          <tr>
+            <th>Baho</th>
+            <th>Oraliq (%)</th>
+            <th>Cheklov (Quota)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${scaleRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- HANGEUL CREATION HISTORY -->
+    <div class="syllabus-card">
+      <span class="group-badge">TARIX VA FALSAFA</span>
+      <h3 style="margin-top: 8px;">Hangulning Yaratilishi (1443-yil)</h3>
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main); margin-bottom: 12px;">
+        1443-yilda Choson sulolasining 4-hukmdori <b>Qirol Sejong (세종대왕)</b> xalq savodxonligini oshirish maqsadida 24 ta asosiy harfdan iborat Hangul alifbosini yaratdi. Alifbo kitobi <b>훈민정음 [Hunminjeongeum]</b> ("Xalqqa to'g'ri tovushlarni o'rgatish") deb atalgan.
+      </p>
+      <div style="background: #faf9f6; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px;">
+        <h4 style="font-weight: 800; margin-bottom: 6px;">Unlilarning 3 Falsafiy Elementi:</h4>
+        <ul style="padding-left: 20px; font-size: 0.9rem; font-weight: 600; display: flex; flex-direction: column; gap: 6px;">
+          <li><b>• (Cheon / 천)</b> — Dumaloq Osmon (Koinot)</li>
+          <li><b>ㅡ (Ji / 지)</b> — Tekis Yer (Zamin)</li>
+          <li><b>ㅣ (In / 인)</b> — Tik turgan Inson</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// --- 9. EXERCISE RUNNER (DUOLINGO-STYLE INTERACTIVE LEARNING) ---
 class ExerciseRunner {
-  constructor(lesson) {
-    this.lesson = lesson;
-    this.currentStepIdx = 0;
+  constructor() {
+    this.lesson = null;
+    this.stepIndex = 0;
     this.selectedOption = null;
-    this.builderAnswer = [];
-    this.matchedPairs = 0;
-    this.activeMatchCard = null;
     this.isEvaluating = false;
-    this.lessonMistakes = 0;
-    this.container = document.getElementById("exerciseView");
+    this.matchedCount = 0;
+    this.builderAnswer = [];
+    this.mistakesCount = 0;
+
+    this.view = document.getElementById("exerciseView");
     this.contentEl = document.getElementById("exerciseContent");
-    this.progressBar = document.getElementById("exerciseProgress");
-    this.heartsCounter = document.getElementById("exerciseHeartsCount");
-    this.evalBar = document.getElementById("evalBar");
-    this.evalInner = document.getElementById("evalInner");
-    this.actionBtn = document.getElementById("evalActionBtn");
+    this.progressEl = document.getElementById("exerciseProgressFill");
+    this.heartsEl = document.getElementById("exerciseHeartsDisplay");
+    this.actionDrawer = document.getElementById("actionDrawer");
+    this.feedbackEl = document.getElementById("drawerFeedback");
+    this.mainActionBtn = document.getElementById("drawerActionBtn");
+
+    this.initEvents();
   }
 
-  start() {
-    this.container.style.display = "flex";
-    this.currentStepIdx = 0;
-    this.lessonMistakes = 0;
-    this.renderCurrentStep();
+  initEvents() {
+    const closeBtn = document.getElementById("closeExerciseRunnerBtn");
+    if (closeBtn) closeBtn.addEventListener("click", () => this.exit());
+
+    if (this.mainActionBtn) {
+      this.mainActionBtn.addEventListener("click", () => this.handleActionClick());
+    }
+
+    const closeCelebBtn = document.getElementById("closeCelebBtn");
+    if (closeCelebBtn) {
+      closeCelebBtn.addEventListener("click", () => {
+        const modal = document.getElementById("celebrationModal");
+        if (modal) modal.style.display = "none";
+        this.exit();
+      });
+    }
+
+    const refillBtn = document.getElementById("refillBtn");
+    if (refillBtn) {
+      refillBtn.addEventListener("click", () => state.refillHearts());
+    }
   }
 
-  renderCurrentStep() {
-    const step = this.lesson.steps[this.currentStepIdx];
+  start(lessonId) {
+    const lesson = HANGEUL_DATA.lessons.find(l => l.id === lessonId);
+    if (!lesson) return;
+
+    this.lesson = lesson;
+    this.stepIndex = 0;
+    this.mistakesCount = 0;
+
+    this.heartsEl.innerText = state.hearts;
+    this.view.style.display = "flex";
+    this.renderStep();
+  }
+
+  exit() {
+    this.view.style.display = "none";
+    this.lesson = null;
+    renderPath();
+  }
+
+  renderStep() {
+    const step = this.lesson.steps[this.stepIndex];
     const total = this.lesson.steps.length;
-    const progressPercent = (this.currentStepIdx / total) * 100;
-    this.progressBar.style.width = `${progressPercent}%`;
-    this.heartsCounter.innerText = state.hearts;
+    const pct = (this.stepIndex / total) * 100;
+    this.progressEl.style.width = `${pct}%`;
 
-    this.resetEvalBar();
+    this.resetDrawer();
     this.selectedOption = null;
     this.builderAnswer = [];
-    this.activeMatchCard = null;
     this.isEvaluating = false;
 
     let html = "";
@@ -256,104 +689,110 @@ class ExerciseRunner {
       case "stroke":
         html = this.renderStroke(step);
         break;
-      default:
-        html = `<div>Noma'lum qadam</div>`;
     }
 
     this.contentEl.innerHTML = html;
-    this.bindStepEvents(step);
+    this.bindEvents(step);
 
-    // Auto-play audio if step has audio
     if (step.audio && (step.type === "theory" || step.type === "listening")) {
-      setTimeout(() => speakKorean(step.audio), 350);
+      setTimeout(() => speakKorean(step.audio), 300);
     }
   }
 
   renderTheory(step) {
-    const pointsHtml = step.points
-      ? `<ul class="theory-points">${step.points.map(p => `<li>${p}</li>`).join("")}</ul>`
+    const points = step.points
+      ? `<ul class="theory-bullet-list">${step.points.map(p => `<li>${p}</li>`).join("")}</ul>`
       : "";
 
-    const imgHtml = step.image
-      ? `<img src="images/${step.image}" class="theory-img" alt="Illustration" onerror="this.style.display='none'">`
+    const img = step.image
+      ? `<img src="images/${step.image}" class="theory-image-view" alt="Illustration" onerror="this.style.display='none'">`
       : "";
 
     return `
-      <div class="step-card">
-        <h2 class="exercise-title">${step.title}</h2>
-        <div class="theory-card">
-          <div class="theory-header-box">
-            <div class="theory-korean-pill">
-              <span>${step.korean}</span>
-              <button class="speaker-btn" onclick="speakKorean('${step.audio || step.korean}')" title="Ovoz chiqarish">🔊</button>
-            </div>
+      <div class="step-box">
+        <div class="exercise-badge">NAZARIYA VA TALAFFUZ</div>
+        <h2 class="question-text">${step.title}</h2>
+        <div class="cool-theory-card">
+          <div class="theory-hero-korean">
+            <span class="hero-korean-word">${step.korean}</span>
+            <button class="audio-btn-pill" onclick="speakKorean('${step.audio || step.korean}')" title="Ovoz chiqarish">
+              ${ICONS.speaker}
+            </button>
           </div>
-          ${imgHtml}
-          <div class="theory-desc">${step.explanation}</div>
-          ${pointsHtml}
+          ${img}
+          <div class="theory-body-text">${step.explanation}</div>
+          ${points}
         </div>
       </div>
     `;
   }
 
   renderChoice(step) {
-    const optionsHtml = step.options.map((opt, idx) => `
-      <button class="option-btn" data-idx="${idx}">
-        <span class="option-kbd">${idx + 1}</span>
-        <span class="option-text">${opt}</span>
+    const opts = step.options.map((opt, idx) => `
+      <button class="cool-option-btn" data-idx="${idx}">
+        <span class="option-key-badge">${idx + 1}</span>
+        <span>${opt}</span>
       </button>
     `).join("");
 
     return `
-      <div class="step-card">
-        <h2 class="exercise-title">${step.question}</h2>
-        <div class="options-grid">
-          ${optionsHtml}
+      <div class="step-box">
+        <div class="exercise-badge">TO'G'RI JAVOBNI TANLANG</div>
+        <h2 class="question-text">${step.question}</h2>
+        <div class="options-stack">
+          ${opts}
         </div>
       </div>
     `;
   }
 
   renderListening(step) {
-    const optionsHtml = step.options.map((opt, idx) => `
-      <button class="option-btn" data-idx="${idx}">
-        <span class="option-kbd">${idx + 1}</span>
-        <span class="option-text">${opt}</span>
+    const opts = step.options.map((opt, idx) => `
+      <button class="cool-option-btn" data-idx="${idx}">
+        <span class="option-key-badge">${idx + 1}</span>
+        <span>${opt}</span>
       </button>
     `).join("");
 
     return `
-      <div class="step-card" style="text-align: center;">
-        <h2 class="exercise-title">${step.question}</h2>
-        <div style="margin: 24px 0; display: flex; gap: 16px; justify-content: center;">
-          <button class="speaker-btn large" onclick="speakKorean('${step.audio}', 0.9)" title="Oddiy tezlikda eshitish">🔊</button>
-          <button class="speaker-btn large" style="background: var(--primary-yellow); box-shadow: 0 6px 0 var(--primary-yellow-dark);" onclick="speakKorean('${step.audio}', 0.6)" title="Sekin tezlikda eshitish">🐢</button>
+      <div class="step-box" style="text-align: center;">
+        <div class="exercise-badge">TINGLAB MOSINI TOPING</div>
+        <h2 class="question-text">${step.question}</h2>
+        <div style="margin: 20px 0; display: flex; gap: 16px; justify-content: center;">
+          <button class="audio-btn-pill large" onclick="speakKorean('${step.audio}', 0.9)" title="Oddiy tezlik">
+            ${ICONS.speaker}
+          </button>
+          <button class="audio-btn-pill large slow" onclick="speakKorean('${step.audio}', 0.65)" title="Sekin tezlik">
+            ${ICONS.timer}
+          </button>
         </div>
-        <div class="options-grid" style="text-align: left;">
-          ${optionsHtml}
+        <div class="options-stack" style="text-align: left;">
+          ${opts}
         </div>
       </div>
     `;
   }
 
   renderMatch(step) {
-    // Shuffle pairs into two columns
     const koreans = step.pairs.map(p => ({ val: p.k, id: p.k, isKorean: true }));
     const uzbeks = step.pairs.map(p => ({ val: p.v, id: p.k, isKorean: false }));
-    const allCards = [...koreans, ...uzbeks].sort(() => Math.random() - 0.5);
+    const all = [...koreans, ...uzbeks].sort(() => Math.random() - 0.5);
 
-    const cardsHtml = allCards.map(c => `
-      <div class="match-card" data-id="${c.id}" data-korean="${c.isKorean}">
+    const cards = all.map(c => `
+      <div class="modern-match-card" data-id="${c.id}" data-korean="${c.isKorean}">
         <span>${c.val}</span>
       </div>
     `).join("");
 
     return `
-      <div class="step-card">
-        <h2 class="exercise-title">${step.question}</h2>
-        <p style="color: var(--text-muted); font-weight: 700; margin-bottom: 12px;">Mos juftliklarni birma-bir bosing:</p>
-        <div class="match-container" id="matchContainer">
-          ${cardsHtml}
+      <div class="step-box">
+        <div class="exercise-badge">JUFTLIKLARNI MOSLANG</div>
+        <h2 class="question-text">${step.question}</h2>
+        <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 14px; font-size: 0.9rem;">
+          Mos koreyscha va o'zbekcha so'zlarni birma-bir bosing:
+        </p>
+        <div class="match-grid-modern">
+          ${cards}
         </div>
       </div>
     `;
@@ -361,85 +800,89 @@ class ExerciseRunner {
 
   renderBuilder(step) {
     const pool = [...step.syllables, ...(step.distractors || [])].sort(() => Math.random() - 0.5);
-    const poolHtml = pool.map(s => `
-      <button class="syllable-tile pool-tile" data-val="${s}">${s}</button>
+    const poolTiles = pool.map(s => `
+      <button class="modern-syllable-tile pool-tile" data-val="${s}">${s}</button>
     `).join("");
 
     return `
-      <div class="step-card">
-        <h2 class="exercise-title">${step.question}</h2>
-        <div class="builder-target-box" id="builderTarget">
-          <span style="color: var(--text-light); font-weight: 700; font-size: 1.1rem;" id="builderPlaceholder">Bo'g'inlarni bu yerga bosing...</span>
+      <div class="step-box">
+        <div class="exercise-badge">BO'G'INLARDAN SO'Z TUZING</div>
+        <h2 class="question-text">${step.question}</h2>
+        <div class="builder-drop-area" id="builderTarget">
+          <span style="color: var(--text-sub); font-weight: 600;" id="builderPlaceholder">Bo'g'inlarni bu yerga bosing...</span>
         </div>
-        <div class="builder-pool" id="builderPool">
-          ${poolHtml}
+        <div class="builder-tiles-pool" id="builderPool">
+          ${poolTiles}
         </div>
       </div>
     `;
   }
 
   renderStroke(step) {
-    const stepsList = step.strokes.map(s => `<li style="margin-bottom: 6px; font-weight: 700;">${s}</li>`).join("");
+    const list = step.strokes.map(s => `<li style="margin-bottom: 6px; font-weight: 600;">${s}</li>`).join("");
 
     return `
-      <div class="step-card" style="text-align: center;">
-        <h2 class="exercise-title">${step.name} harfini yozish tartibi</h2>
-        <div class="stroke-view">
-          <div class="canvas-wrapper">
-            <div class="stroke-guide-bg">${step.canvasLetter}</div>
-            <canvas id="strokeCanvas" class="stroke-canvas" width="260" height="260"></canvas>
+      <div class="step-box" style="text-align: center;">
+        <div class="exercise-badge">HARFNI YOZISH MASHQI</div>
+        <h2 class="question-text">${step.name} harfini chizing</h2>
+        <div class="stroke-panel">
+          <div class="canvas-box">
+            <div class="canvas-watermark">${step.canvasLetter}</div>
+            <canvas id="traceCanvas" class="trace-canvas" width="240" height="240"></canvas>
           </div>
-          <div class="stroke-controls">
-            <button class="btn-secondary" id="clearCanvasBtn">Tozalash 🗑️</button>
-            <button class="btn-secondary" onclick="speakKorean('${step.canvasLetter}')">Talaffuz 🔊</button>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="stat-chip" id="clearCanvasBtn" style="cursor: pointer;">
+              <span class="svg-icon" style="width: 14px; height: 14px;">${ICONS.trash}</span>
+              Tozalash
+            </button>
+            <button class="stat-chip" onclick="speakKorean('${step.canvasLetter}')" style="cursor: pointer;">
+              <span class="svg-icon" style="width: 14px; height: 14px;">${ICONS.speaker}</span>
+              Talaffuz
+            </button>
           </div>
-          <div style="text-align: left; background: #ffffff; padding: 14px 20px; border-radius: 12px; border: 2px solid var(--border-color); max-width: 320px; width: 100%;">
-            <h4 style="font-weight: 900; margin-bottom: 8px;">Yozilish tartibi:</h4>
-            <ol style="padding-left: 20px; color: var(--text-dark);">${stepsList}</ol>
+          <div style="text-align: left; background: #ffffff; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border); max-width: 320px; width: 100%; margin-top: 6px;">
+            <h4 style="font-weight: 800; margin-bottom: 6px; font-size: 0.95rem;">Yozilish tartibi:</h4>
+            <ol style="padding-left: 20px; color: var(--text-main); font-size: 0.9rem;">${list}</ol>
           </div>
         </div>
       </div>
     `;
   }
 
-  bindStepEvents(step) {
-    // Theory step: action button ready to proceed immediately
+  bindEvents(step) {
     if (step.type === "theory") {
-      this.actionBtn.disabled = false;
-      this.actionBtn.innerText = "Tushunarli";
-      this.actionBtn.className = "btn-primary";
+      this.mainActionBtn.disabled = false;
+      this.mainActionBtn.innerText = "Tushunarli";
+      this.mainActionBtn.className = "btn-main";
       return;
     }
 
-    // Stroke canvas step
     if (step.type === "stroke") {
-      this.initStrokeCanvas();
-      this.actionBtn.disabled = false;
-      this.actionBtn.innerText = "Keyingisi";
-      this.actionBtn.className = "btn-primary";
+      this.initCanvas();
+      this.mainActionBtn.disabled = false;
+      this.mainActionBtn.innerText = "Keyingisi";
+      this.mainActionBtn.className = "btn-main";
       return;
     }
 
-    // Choice / Listening options
     if (step.type === "choice" || step.type === "listening") {
-      const btns = this.contentEl.querySelectorAll(".option-btn");
+      const btns = this.contentEl.querySelectorAll(".cool-option-btn");
       btns.forEach(btn => {
         btn.addEventListener("click", () => {
           sfx.click();
           btns.forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
           this.selectedOption = parseInt(btn.dataset.idx);
-          this.actionBtn.disabled = false;
+          this.mainActionBtn.disabled = false;
         });
       });
       return;
     }
 
-    // Match Pairs
     if (step.type === "match") {
-      this.matchedPairs = 0;
+      this.matchedCount = 0;
       const totalPairs = step.pairs.length;
-      const cards = this.contentEl.querySelectorAll(".match-card");
+      const cards = this.contentEl.querySelectorAll(".modern-match-card");
 
       cards.forEach(card => {
         card.addEventListener("click", () => {
@@ -451,9 +894,8 @@ class ExerciseRunner {
           }
 
           if (!this.activeMatchCard) {
-            cards.forEach(c => c.classList.remove("selected"));
-            card.classList.add("selected");
             this.activeMatchCard = card;
+            card.classList.add("selected");
           } else {
             if (this.activeMatchCard === card) {
               card.classList.remove("selected");
@@ -461,22 +903,27 @@ class ExerciseRunner {
               return;
             }
 
-            const isMatch = (this.activeMatchCard.dataset.id === card.dataset.id) &&
-                            (this.activeMatchCard.dataset.korean !== card.dataset.korean);
+            const id1 = this.activeMatchCard.dataset.id;
+            const id2 = card.dataset.id;
+            const isK1 = this.activeMatchCard.dataset.korean;
+            const isK2 = card.dataset.korean;
 
-            if (isMatch) {
-              sfx.match();
+            if (id1 === id2 && isK1 !== isK2) {
+              // Match found
+              sfx.click();
               this.activeMatchCard.classList.remove("selected");
               this.activeMatchCard.classList.add("matched");
               card.classList.add("matched");
               this.activeMatchCard = null;
-              this.matchedPairs++;
+              this.matchedCount++;
 
-              if (this.matchedPairs === totalPairs) {
-                this.actionBtn.disabled = false;
-                this.showEvaluation(true, "Ajoyib! Barcha juftliklar to'g'ri topildi!");
+              if (this.matchedCount === totalPairs) {
+                setTimeout(() => {
+                  this.showEvaluation(true, "Barcha juftliklar to'g'ri topildi!");
+                }, 300);
               }
             } else {
+              // Wrong match
               sfx.wrong();
               const first = this.activeMatchCard;
               first.classList.add("error");
@@ -484,7 +931,7 @@ class ExerciseRunner {
               setTimeout(() => {
                 first.classList.remove("error", "selected");
                 card.classList.remove("error", "selected");
-              }, 400);
+              }, 350);
               this.activeMatchCard = null;
             }
           }
@@ -493,7 +940,6 @@ class ExerciseRunner {
       return;
     }
 
-    // Word Builder
     if (step.type === "builder") {
       const targetBox = document.getElementById("builderTarget");
       const poolBox = document.getElementById("builderPool");
@@ -510,73 +956,77 @@ class ExerciseRunner {
           if (placeholder) placeholder.style.display = "none";
 
           const targetTile = document.createElement("button");
-          targetTile.className = "syllable-tile";
+          targetTile.className = "modern-syllable-tile";
           targetTile.innerText = tile.dataset.val;
+
           targetTile.addEventListener("click", () => {
             sfx.click();
             targetTile.remove();
             tile.classList.remove("used");
-            this.builderAnswer = this.builderAnswer.filter(item => item !== targetTile);
+            this.builderAnswer = this.builderAnswer.filter(i => i !== targetTile);
             if (this.builderAnswer.length === 0 && placeholder) {
               placeholder.style.display = "inline";
             }
-            this.actionBtn.disabled = this.builderAnswer.length === 0;
+            this.mainActionBtn.disabled = this.builderAnswer.length === 0;
           });
 
           targetBox.appendChild(targetTile);
           this.builderAnswer.push(targetTile);
-          this.actionBtn.disabled = false;
+          this.mainActionBtn.disabled = false;
         });
       });
     }
   }
 
-  initStrokeCanvas() {
-    const canvas = document.getElementById("strokeCanvas");
+  // Pointer Events Canvas (Touch & Mouse with Subpixel Accuracy)
+  initCanvas() {
+    const canvas = document.getElementById("traceCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    let drawing = false;
+    let isDrawing = false;
 
-    ctx.strokeStyle = "#58cc02";
+    ctx.strokeStyle = "#18181b";
     ctx.lineWidth = 14;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
       return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
       };
     };
 
     const startDraw = (e) => {
-      drawing = true;
+      isDrawing = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
       const pos = getPos(e);
       ctx.beginPath();
       ctx.moveTo(pos.x, pos.y);
-      if (e.type === "touchstart") e.preventDefault();
+      e.preventDefault();
     };
 
-    const draw = (e) => {
-      if (!drawing) return;
+    const drawMove = (e) => {
+      if (!isDrawing) return;
       const pos = getPos(e);
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
-      if (e.type === "touchmove") e.preventDefault();
+      e.preventDefault();
     };
 
-    const stopDraw = () => { drawing = false; };
+    const stopDraw = (e) => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    };
 
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mousemove", draw);
-    window.addEventListener("mouseup", stopDraw);
-
-    canvas.addEventListener("touchstart", startDraw, { passive: false });
-    canvas.addEventListener("touchmove", draw, { passive: false });
-    window.addEventListener("touchend", stopDraw);
+    canvas.addEventListener("pointerdown", startDraw);
+    canvas.addEventListener("pointermove", drawMove);
+    canvas.addEventListener("pointerup", stopDraw);
+    canvas.addEventListener("pointercancel", stopDraw);
 
     const clearBtn = document.getElementById("clearCanvasBtn");
     if (clearBtn) {
@@ -587,101 +1037,101 @@ class ExerciseRunner {
     }
   }
 
-  resetEvalBar() {
-    this.evalBar.className = "eval-bar";
-    this.actionBtn.className = "btn-primary";
-    this.actionBtn.innerText = "Tekshirish";
-    this.actionBtn.disabled = true;
-
-    // Reset feedback area
-    const feedbackBox = document.getElementById("evalFeedback");
-    if (feedbackBox) {
-      feedbackBox.innerHTML = "";
-    }
+  resetDrawer() {
+    this.actionDrawer.className = "action-drawer";
+    this.feedbackEl.innerHTML = "";
+    this.mainActionBtn.disabled = true;
+    this.mainActionBtn.innerText = "Tekshirish";
+    this.mainActionBtn.className = "btn-main";
   }
 
-  handleAction() {
-    const step = this.lesson.steps[this.currentStepIdx];
+  handleActionClick() {
+    sfx.click();
+    const step = this.lesson.steps[this.stepIndex];
 
-    // Theory, stroke, or already evaluated: move forward
     if (step.type === "theory" || step.type === "stroke" || this.isEvaluating) {
       this.nextStep();
       return;
     }
 
-    // Evaluate choice or listening
     if (step.type === "choice" || step.type === "listening") {
       const isCorrect = this.selectedOption === step.correct;
-      const explanation = step.explanation || (isCorrect ? "Barakalla! To'g'ri tanladingiz." : `To'g'ri javob: ${step.options[step.correct]}`);
-      this.showEvaluation(isCorrect, explanation);
+      const expl = isCorrect
+        ? (step.explanation || "To'g'ri tanlov!")
+        : `To'g'ri javob: ${step.options[step.correct]}. ${step.explanation || ""}`;
+      this.showEvaluation(isCorrect, expl);
       return;
     }
 
-    // Evaluate Word Builder
     if (step.type === "builder") {
-      const formed = this.builderAnswer.map(b => b.innerText).join("");
+      const formed = this.builderAnswer.map(t => t.innerText).join("");
       const isCorrect = formed === step.targetWord;
-      const explanation = isCorrect
-        ? `To'g'ri! ${step.targetWord} muvaffaqiyatli tuzildi!`
-        : `Noto'g'ri. To'g'ri so'z: ${step.targetWord}`;
-      this.showEvaluation(isCorrect, explanation);
+      const expl = isCorrect
+        ? `To'g'ri! «${step.targetWord}» so'zi muvaffaqiyatli tuzildi.`
+        : `Noto'g'ri. To'g'ri so'z: «${step.targetWord}». (${step.explanation || ""})`;
+      this.showEvaluation(isCorrect, expl);
       return;
     }
 
-    // Match pairs already triggers next on complete
     if (step.type === "match") {
       this.nextStep();
     }
   }
 
-  showEvaluation(isCorrect, message) {
+  showEvaluation(isCorrect, text) {
     this.isEvaluating = true;
-    const feedbackBox = document.getElementById("evalFeedback");
 
     if (isCorrect) {
       sfx.correct();
-      state.addXP(10);
-      this.evalBar.className = "eval-bar correct";
-      this.actionBtn.className = "btn-primary";
-      this.actionBtn.innerText = "Davom etish";
-      this.actionBtn.disabled = false;
+      state.addStars(1);
+      this.actionDrawer.className = "action-drawer correct";
+      this.mainActionBtn.className = "btn-main";
+      this.mainActionBtn.innerText = "Davom etish";
+      this.mainActionBtn.disabled = false;
 
-      feedbackBox.innerHTML = `
-        <div class="feedback-icon">✓</div>
-        <div class="feedback-text">
-          <h4>Ajoyib!</h4>
-          <p>${message}</p>
+      this.feedbackEl.innerHTML = `
+        <div class="feedback-status-icon">
+          <span class="svg-icon" style="width: 24px; height: 24px;">${ICONS.check}</span>
+        </div>
+        <div>
+          <h4>Ajoyib natija!</h4>
+          <p style="color: #15803d; font-size: 0.92rem; font-weight: 600;">${text}</p>
         </div>
       `;
     } else {
       sfx.wrong();
-      this.lessonMistakes++;
+      this.mistakesCount++;
       const left = state.loseHeart();
-      this.heartsCounter.innerText = left;
+      this.heartsEl.innerText = left;
 
-      this.evalBar.className = "eval-bar wrong";
-      this.actionBtn.className = "btn-primary wrong-btn";
-      this.actionBtn.innerText = "Tushunarli";
-      this.actionBtn.disabled = false;
+      this.actionDrawer.className = "action-drawer wrong";
+      this.mainActionBtn.className = "btn-main wrong-action";
+      this.mainActionBtn.innerText = "Tushunarli";
+      this.mainActionBtn.disabled = false;
 
-      feedbackBox.innerHTML = `
-        <div class="feedback-icon">✕</div>
-        <div class="feedback-text">
-          <h4>Xato javob</h4>
-          <p>${message}</p>
+      this.feedbackEl.innerHTML = `
+        <div class="feedback-status-icon">
+          <span class="svg-icon" style="width: 24px; height: 24px;">${ICONS.alert}</span>
+        </div>
+        <div>
+          <h4>Noto'g'ri javob</h4>
+          <p>${text}</p>
         </div>
       `;
 
       if (left <= 0) {
-        setTimeout(() => this.showOutOfHeartsModal(), 600);
+        setTimeout(() => {
+          const modal = document.getElementById("heartsModal");
+          if (modal) modal.style.display = "flex";
+        }, 600);
       }
     }
   }
 
   nextStep() {
-    this.currentStepIdx++;
-    if (this.currentStepIdx < this.lesson.steps.length) {
-      this.renderCurrentStep();
+    this.stepIndex++;
+    if (this.stepIndex < this.lesson.steps.length) {
+      this.renderStep();
     } else {
       this.finishLesson();
     }
@@ -689,346 +1139,50 @@ class ExerciseRunner {
 
   finishLesson() {
     sfx.fanfare();
+    state.addStars(5);
     state.completeLesson(this.lesson.id);
-    state.addXP(50);
-
-    triggerConfetti();
-
-    const xpEarned = 50 + (this.lesson.steps.length * 10) - (this.lessonMistakes * 5);
-    const accuracy = Math.max(10, Math.round(((this.lesson.steps.length - this.lessonMistakes) / this.lesson.steps.length) * 100));
 
     const modal = document.getElementById("celebrationModal");
-    const titleEl = document.getElementById("celebrationTitle");
-    const xpEl = document.getElementById("celebrationXP");
-    const accEl = document.getElementById("celebrationAcc");
+    const titleEl = document.getElementById("celebLessonTitle");
+    const starsEl = document.getElementById("celebStarsEarned");
+    const accEl = document.getElementById("celebAccuracyVal");
 
-    if (titleEl) titleEl.innerText = `${this.lesson.title} Yakunlandi!`;
-    if (xpEl) xpEl.innerText = `+${xpEarned} XP`;
-    if (accEl) accEl.innerText = `${accuracy}%`;
+    const total = this.lesson.steps.length;
+    const acc = Math.max(50, Math.round(((total - this.mistakesCount) / total) * 100));
 
-    modal.style.display = "flex";
-  }
+    if (titleEl) titleEl.innerText = `${this.lesson.title} tugallandi!`;
+    if (starsEl) starsEl.innerText = `+${5 + total} ball`;
+    if (accEl) accEl.innerText = `${acc}%`;
 
-  showOutOfHeartsModal() {
-    const modal = document.getElementById("outOfHeartsModal");
     if (modal) modal.style.display = "flex";
   }
-
-  close() {
-    this.container.style.display = "none";
-    renderPath();
-  }
 }
 
-let currentRunner = null;
+let runner = null;
 
-function startLesson(lessonId) {
-  sfx.initContext();
+function startLesson(id) {
   sfx.click();
-  const lesson = HANGEUL_DATA.lessons.find(l => l.id === lessonId);
-  if (!lesson) return;
-
-  if (state.hearts <= 0) {
-    state.refillHearts();
-  }
-
-  currentRunner = new ExerciseRunner(lesson);
-  currentRunner.start();
+  if (!runner) runner = new ExerciseRunner();
+  runner.start(id);
 }
 
-// --- 4. RENDER LEARNING PATH ---
-function renderPath() {
-  const container = document.getElementById("pathContainer");
-  if (!container) return;
-
-  const track = state.currentTrack;
-  const filtered = HANGEUL_DATA.lessons.filter(l => {
-    if (track === "all") return true;
-    return l.track === track;
-  });
-
-  let html = "";
-  let lastTrack = "";
-
-  filtered.forEach((lesson, idx) => {
-    // Track change banner
-    if (lesson.track !== lastTrack && track === "all") {
-      lastTrack = lesson.track;
-      let trackClass = lesson.track;
-      html += `
-        <div class="path-section-banner ${trackClass}">
-          <div>
-            <div class="banner-title">${lesson.trackTitle}</div>
-            <div class="banner-sub">Ma'ruzalarga asoslangan interaktiv modullar</div>
-          </div>
-          <span style="font-size: 28px;">${lesson.track === 'alphabet' ? '👑' : (lesson.track === 'words' ? '💬' : '🇰🇷')}</span>
-        </div>
-      `;
-    }
-
-    const isCompleted = state.completedLessons.includes(lesson.id);
-    const isUnlocked = state.unlockedLessons.includes(lesson.id);
-
-    let btnClass = "node-btn";
-    if (isCompleted) btnClass += " completed";
-    else if (!isUnlocked) btnClass += " locked";
-
-    html += `
-      <div class="path-node-wrapper">
-        <button class="${btnClass}" ${!isUnlocked ? "disabled" : ""} onclick="startLesson('${lesson.id}')">
-          <span class="node-icon">${lesson.icon}</span>
-          ${isCompleted ? `<span class="node-crown">👑</span>` : ""}
-        </button>
-        <div class="node-label">${lesson.title}</div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-// --- 5. MODAL HANDLERS (CHART, WORDBOOK, SYLLABUS, MATCH MADNESS) ---
-function showAlphabetChart() {
-  sfx.click();
-  const modal = document.getElementById("alphabetModal");
-  const vowelsGrid = document.getElementById("vowelsChartGrid");
-  const consonantsGrid = document.getElementById("consonantsChartGrid");
-
-  vowelsGrid.innerHTML = HANGEUL_DATA.vowels.map(v => `
-    <div class="chart-tile" onclick="speakKorean('${v.name}')" title="${v.name} [${v.sound}] - ${v.uz}">
-      <div class="chart-char">${v.char}</div>
-      <div class="chart-sub">${v.name} [${v.sound}]</div>
-    </div>
-  `).join("");
-
-  consonantsGrid.innerHTML = HANGEUL_DATA.consonants.map(c => `
-    <div class="chart-tile" onclick="speakKorean('${c.char}')" title="${c.name} [${c.sound}] - ${c.uz}">
-      <div class="chart-char">${c.char}</div>
-      <div class="chart-sub">${c.name.split(' ')[0]}</div>
-    </div>
-  `).join("");
-
-  modal.style.display = "flex";
-}
-
-function showWordbook() {
-  sfx.click();
-  const modal = document.getElementById("wordbookModal");
-  const listEl = document.getElementById("wordbookList");
-  renderWordList(HANGEUL_DATA.words);
-  modal.style.display = "flex";
-}
-
-function renderWordList(words) {
-  const listEl = document.getElementById("wordbookList");
-  listEl.innerHTML = words.map(w => `
-    <div class="word-row-card">
-      <div class="word-row-info">
-        <img src="images/${w.image}" class="word-row-thumb" alt="${w.korean}" onerror="this.src='images/image4.jpeg'">
-        <div>
-          <div class="word-korean">${w.korean} <span style="font-size: 0.9rem; color: var(--primary-green-dark); font-weight: 700;">[${w.trans}]</span></div>
-          <div class="word-uzbek">${w.uzbek}</div>
-          <div style="font-size: 0.78rem; color: var(--text-light);">${w.note}</div>
-        </div>
-      </div>
-      <button class="speaker-btn" onclick="speakKorean('${w.korean}')">🔊</button>
-    </div>
-  `).join("");
-}
-
-function filterWordbook(query) {
-  const q = query.toLowerCase().trim();
-  const filtered = HANGEUL_DATA.words.filter(w =>
-    w.korean.toLowerCase().includes(q) ||
-    w.uzbek.toLowerCase().includes(q) ||
-    w.trans.toLowerCase().includes(q)
-  );
-  renderWordList(filtered);
-}
-
-function showSyllabus() {
-  sfx.click();
-  const modal = document.getElementById("syllabusModal");
-  const c = HANGEUL_DATA.courseInfo;
-
-  const gradingRows = c.grading.map(g => `
-    <tr>
-      <td style="padding: 8px; border-bottom: 1px solid var(--border-color); font-weight: 800;">${g.item}</td>
-      <td style="padding: 8px; border-bottom: 1px solid var(--border-color); color: var(--primary-green-dark); font-weight: 900;">${g.weight}</td>
-      <td style="padding: 8px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem;">${g.detail}</td>
-    </tr>
-  `).join("");
-
-  const penaltiesList = c.penalties.map(p => `
-    <li style="margin-bottom: 6px; font-weight: 700; color: #ea2b2b;">⚠️ ${p}</li>
-  `).join("");
-
-  const bodyEl = document.getElementById("syllabusModalBody");
-  bodyEl.innerHTML = `
-    <div style="margin-bottom: 20px; background: #eef9ff; border: 2px solid #b8e6ff; padding: 16px; border-radius: 14px;">
-      <h3 style="color: var(--primary-blue-dark); font-weight: 900;">${c.name}</h3>
-      <p style="font-weight: 800; color: var(--text-dark);">O'qituvchi: <b>${c.teacher}</b></p>
-      <p style="font-weight: 700; color: var(--text-muted);">Xona: <b>${c.office}</b></p>
-    </div>
-
-    <h4 style="font-weight: 900; margin: 16px 0 8px;">Baholash mezonlari (Grading):</h4>
-    <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 20px;">
-      <thead>
-        <tr style="background: #f7f7f7;">
-          <th style="padding: 8px; border-bottom: 2px solid var(--border-color);">Tarkib</th>
-          <th style="padding: 8px; border-bottom: 2px solid var(--border-color);">Ulush</th>
-          <th style="padding: 8px; border-bottom: 2px solid var(--border-color);">Izoh</th>
-        </tr>
-      </thead>
-      <tbody>${gradingRows}</tbody>
-    </table>
-
-    <h4 style="font-weight: 900; margin: 16px 0 8px; color: #ea2b2b;">Qat'iy dars qoidalari & Jarimalar:</h4>
-    <ul style="list-style: none; padding: 0;">${penaltiesList}</ul>
-  `;
-
-  modal.style.display = "flex";
-}
-
-// --- 6. CANVAS CONFETTI ENGINE ---
-function triggerConfetti() {
-  const canvas = document.getElementById("confettiCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const particles = [];
-  const colors = ["#58cc02", "#1cb0f6", "#ffc800", "#ff4b4b", "#ce82ff"];
-
-  for (let i = 0; i < 120; i++) {
-    particles.push({
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      vx: (Math.random() - 0.5) * 18,
-      vy: (Math.random() - 0.7) * 18,
-      size: Math.random() * 9 + 5,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * 360,
-      vRot: (Math.random() - 0.5) * 12,
-      gravity: 0.35,
-      opacity: 1
-    });
-  }
-
-  let animationFrame;
-  function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let alive = false;
-
-    particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += p.gravity;
-      p.rotation += p.vRot;
-      p.opacity -= 0.008;
-
-      if (p.opacity > 0) {
-        alive = true;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate((p.rotation * Math.PI) / 180);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.opacity);
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-        ctx.restore();
-      }
-    });
-
-    if (alive) {
-      animationFrame = requestAnimationFrame(update);
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  }
-
-  update();
-}
-
-// --- 7. GLOBAL INITIALIZATION ---
+// --- 10. INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-  state.updateStatsUI();
+  state.updateHeaderStats();
   renderPath();
 
-  // Track buttons
-  document.querySelectorAll(".track-btn").forEach(btn => {
+  // Tab buttons click listener
+  document.querySelectorAll(".segment-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      sfx.click();
-      document.querySelectorAll(".track-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      state.currentTrack = btn.dataset.track;
-      renderPath();
+      const tab = btn.dataset.tab;
+      switchTab(tab);
     });
   });
 
-  // Action button in eval bar
-  const actionBtn = document.getElementById("evalActionBtn");
-  if (actionBtn) {
-    actionBtn.addEventListener("click", () => {
-      if (currentRunner) currentRunner.handleAction();
-    });
-  }
-
-  // Close exercise view
-  const closeBtn = document.getElementById("closeExerciseBtn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      sfx.click();
-      if (confirm("Haqiqatan ham mashg'ulotni tark etmoqchimisiz? Progressingiz saqlanmaydi.")) {
-        if (currentRunner) currentRunner.close();
-      }
-    });
-  }
-
-  // Celebration modal close
-  const celebCloseBtn = document.getElementById("closeCelebrationBtn");
-  if (celebCloseBtn) {
-    celebCloseBtn.addEventListener("click", () => {
-      sfx.click();
-      document.getElementById("celebrationModal").style.display = "none";
-      if (currentRunner) currentRunner.close();
-    });
-  }
-
-  // Refill hearts button
-  const refillBtn = document.getElementById("refillHeartsBtn");
-  if (refillBtn) {
-    refillBtn.addEventListener("click", () => {
-      sfx.click();
-      state.refillHearts();
-      document.getElementById("outOfHeartsModal").style.display = "none";
-      if (currentRunner) {
-        currentRunner.heartsCounter.innerText = state.hearts;
-      }
-    });
-  }
-
-  // Generic modal close buttons
-  document.querySelectorAll(".modal-close-x").forEach(btn => {
-    btn.addEventListener("click", () => {
-      sfx.click();
-      btn.closest(".modal-overlay").style.display = "none";
-    });
-  });
-
-  // Keyboard shortcut listener (1-4 for options, Enter for evaluate)
-  window.addEventListener("keydown", (e) => {
-    if (document.getElementById("exerciseView").style.display === "flex") {
-      if (["1", "2", "3", "4"].includes(e.key)) {
-        const idx = parseInt(e.key) - 1;
-        const btn = document.querySelector(`.option-btn[data-idx="${idx}"]`);
-        if (btn) btn.click();
-      } else if (e.key === "Enter") {
-        if (actionBtn && !actionBtn.disabled) {
-          actionBtn.click();
-        }
-      }
+  // Modal backdrop click to close
+  window.addEventListener("click", (e) => {
+    if (e.target.classList.contains("modal-backdrop")) {
+      e.target.style.display = "none";
     }
   });
 });

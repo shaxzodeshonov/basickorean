@@ -2,191 +2,286 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HangeulDuo (한글듀오) - O'zbekcha-Koreyscha Interaktiv Ta'lim</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BasicKorean — thanks to shaxzod (shxzd.dev)</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦉</text></svg>">
 </head>
 <body>
 
-  <!-- TOP NAVBAR -->
-  <header class="navbar">
-    <div class="nav-brand" onclick="location.reload()">
-      <div class="nav-logo-icon">🦉</div>
-      <div class="brand-text">
-        <h1>HangeulDuo</h1>
-        <span>한글듀오 • O'zbekcha-Koreyscha</span>
+  <!-- TOP HEADER -->
+  <header class="header-container">
+    <div class="top-bar">
+      <!-- BRAND (한 BADGE + TITLE & ATTRIBUTION) -->
+      <div class="brand-section" onclick="switchTab('path')" role="button" tabindex="0" title="Bosh sahifaga qaytish">
+        <div class="brand-badge">한</div>
+        <div class="brand-titles">
+          <div class="brand-name">BasicKorean</div>
+          <div class="brand-credit">
+            thanks to <a href="https://shxzd.dev" target="_blank" rel="noopener noreferrer" class="credit-link" onclick="event.stopPropagation()">shaxzod</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS PILLS (STARS, PROGRESS, HEARTS) -->
+      <div class="stats-group">
+        <div class="stat-chip stars" title="Yulduzlar / Ballar">
+          <span class="svg-icon star-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
+          <span id="headerStarCount">0</span>
+        </div>
+
+        <div class="stat-chip progress-chip" title="Bajarilgan darslar">
+          <span class="svg-icon check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </span>
+          <span id="headerProgressCount">0/12</span>
+        </div>
+
+        <div class="stat-chip hearts" id="headerHeartsChip" onclick="state.refillHearts()" role="button" tabindex="0" title="Jonlar (bosing - to'ldirish)">
+          <span class="svg-icon heart-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </span>
+          <span id="headerHeartsCount">5/5</span>
+        </div>
       </div>
     </div>
 
-    <!-- NAVIGATION SHORTCUTS -->
-    <nav class="nav-tabs">
-      <button class="nav-tab-btn" onclick="showAlphabetChart()">
-        <span>🔤</span> Alifbo Jadvali
-      </button>
-      <button class="nav-tab-btn" onclick="showWordbook()">
-        <span>📖</span> Lug'at (30+ So'z)
-      </button>
-      <button class="nav-tab-btn" onclick="showSyllabus()">
-        <span>📋</span> Kurs Qoidalari
-      </button>
-    </nav>
-
-    <!-- STATS (STREAK, XP, HEARTS) -->
-    <div class="nav-stats">
-      <div class="stat-pill streak" title="Ketma-ket kunlik o'rganish">
-        <span>🔥</span>
-        <span id="statStreak">1</span>
-      </div>
-      <div class="stat-pill xp" title="To'plangan XP ballar">
-        <span>⭐</span>
-        <span id="statXP">0</span>
-      </div>
-      <div class="stat-pill hearts" id="heartsPill" onclick="state.refillHearts()" title="Jonlaringiz soni (bosing - to'ldirish)">
-        <span>❤️</span>
-        <span id="statHearts">5</span>
-      </div>
+    <!-- SEGMENTED NAVIGATION TABS (4 SEAMLESS INLINE VIEWS) -->
+    <div class="nav-segment-container">
+      <nav class="segmented-control" role="tablist">
+        <button class="segment-btn active" data-tab="path" role="tab" aria-selected="true">Yo'l</button>
+        <button class="segment-btn" data-tab="soundboard" role="tab" aria-selected="false">Alifbo</button>
+        <button class="segment-btn" data-tab="wordbook" role="tab" aria-selected="false">Lug'at</button>
+        <button class="segment-btn" data-tab="syllabus" role="tab" aria-selected="false">Qo'llanma</button>
+      </nav>
     </div>
   </header>
 
-  <!-- MAIN LEARNING APP CONTAINER -->
-  <main class="app-container">
-    
-    <!-- TRACK SELECTION HEADER -->
-    <section class="track-header">
-      <div class="track-info">
-        <h2>Koreys Tili & Ma'ruzalar Kursi (Basic Korean 1)</h2>
-        <p>Ma'ruzalardagi alifbo, so'zlar va Koreya madaniyatini Duolingo uslubida o'rganing</p>
+  <!-- MAIN WRAPPER WITH INLINE RESPONSIVE VIEWS -->
+  <main class="main-wrapper">
+
+    <!-- 1. TAB: YO'L (LEARNING ROADMAP) -->
+    <section id="view-path" class="tab-view active">
+      <div class="path-toolbar">
+        <div class="mode-toggle-wrap" onclick="toggleFreeMode()" role="button" tabindex="0">
+          <span class="toggle-box checked" id="freeModeCheckbox">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </span>
+          <span class="toggle-label" id="freeModeLabel">Erkin rejim (Hammasi ochiq)</span>
+        </div>
+        <button class="text-pill-btn" onclick="state.refillHearts()" title="Jonlarni to'ldirish">
+          <span class="svg-icon" style="width: 14px; height: 14px; color: var(--accent-heart);">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </span>
+          Jonlarni tiklash
+        </button>
       </div>
 
-      <div class="track-selector">
-        <button class="track-btn active" data-track="all">Barchasi</button>
-        <button class="track-btn" data-track="alphabet">🅰️ Alifbo</button>
-        <button class="track-btn" data-track="words">💬 So'zlar</button>
-        <button class="track-btn" data-track="culture">🇰🇷 Koreya & Quiz</button>
+      <div id="pathSectionsContainer">
+        <!-- Sections and learning nodes rendered dynamically -->
       </div>
     </section>
 
-    <!-- LEARNING PATH (DUOLINGO STYLE) -->
-    <section class="learning-path" id="pathContainer">
-      <!-- Generated via app.js -->
+    <!-- 2. TAB: ALIFBO (INTERACTIVE SOUNDBOARD) -->
+    <section id="view-soundboard" class="tab-view" style="display: none;">
+      <div class="view-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2>Koreys Alifbosi (Hangul)</h2>
+            <p class="panel-desc">Harflar ustiga bosing — talaffuzini eshiting va o'zbekcha talaffuz qoidasini o'rganing</p>
+          </div>
+        </div>
+
+        <div class="filter-pills-row" id="alphabetFilterRow">
+          <button class="filter-pill active" onclick="filterAlphabet('all')">Barchasi (24)</button>
+          <button class="filter-pill" onclick="filterAlphabet('vowels')">10 ta Unli (모음)</button>
+          <button class="filter-pill" onclick="filterAlphabet('consonants')">14 ta Undosh (자음)</button>
+        </div>
+
+        <div class="alphabet-group" id="vowelsBlock">
+          <div class="group-header">
+            <span class="group-badge">10 TA ODDIY UNLILAR (모음)</span>
+            <span class="group-hint">3 falsafiy element: • (Osmon), ㅡ (Yer), ㅣ (Inson)</span>
+          </div>
+          <div class="soundboard-grid" id="vowelsGrid"></div>
+        </div>
+
+        <div class="alphabet-group" id="consonantsBlock" style="margin-top: 28px;">
+          <div class="group-header">
+            <span class="group-badge">14 TA ODDIY UNDOSHLAR (자음)</span>
+            <span class="group-hint">Nutq a'zolari (til, lab, tish, tomoq) shakli asosida yaratilgan</span>
+          </div>
+          <div class="soundboard-grid" id="consonantsGrid"></div>
+        </div>
+      </div>
     </section>
+
+    <!-- 3. TAB: LUG'AT (LECTURE VOCABULARY) -->
+    <section id="view-wordbook" class="tab-view" style="display: none;">
+      <div class="view-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2>Ma'ruzalardagi So'zlar Lug'ati</h2>
+            <p class="panel-desc">«Basic Korean 1» va «한국소개» taqdimotlaridagi barcha so'zlar va iboralar</p>
+          </div>
+        </div>
+
+        <div class="search-container">
+          <span class="svg-icon search-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" id="wordSearchInput" class="search-field-modern" placeholder="Qidirish (masalan: annyeong, ota, kitob, koreya, shlyapa)..." oninput="filterWords(this.value)">
+          <button class="search-clear-btn" id="searchClearBtn" onclick="clearWordSearch()" style="display: none;">
+            <span class="svg-icon" style="width: 16px; height: 16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <div class="wordbook-meta-bar">
+          <span id="wordbookCountBadge" class="meta-count">Jami: 25 ta so'z</span>
+          <span class="meta-hint">Talaffuzni eshitish uchun karnay tugmasini bosing</span>
+        </div>
+
+        <div class="wordbook-stack" id="wordbookStack">
+          <!-- Word rows rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TAB: QO'LLANMA (COURSE SYLLABUS & CULTURE GUIDE) -->
+    <section id="view-syllabus" class="tab-view" style="display: none;">
+      <div class="view-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2>Kurs Qo'llanmasi & Madaniyat</h2>
+            <p class="panel-desc">Shirin sonsengnim ma'ruza talablari, baholash tizimi va Koreya madaniyati</p>
+          </div>
+        </div>
+
+        <div id="syllabusContentArea">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER ATTRIBUTION -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span><b>BasicKorean</b> • Koreys tili 1-kurs ma'ruzalari</span>
+      </div>
+      <div class="footer-right">
+        <span>Thanks to <b>Shaxzod</b> — <a href="https://shxzd.dev" target="_blank" rel="noopener noreferrer">shxzd.dev</a></span>
+      </div>
+    </footer>
 
   </main>
 
-  <!-- ================= EXERCISE VIEW (OVERLAY) ================= -->
+  <!-- ================= EXERCISE RUNNER VIEW (OVERLAY) ================= -->
   <div class="exercise-view" id="exerciseView" style="display: none;">
     
-    <!-- EXERCISE HEADER -->
-    <div class="exercise-header">
-      <button class="close-btn" id="closeExerciseBtn" title="Chiqish">✕</button>
-      <div class="progress-bar-container">
-        <div class="progress-bar-fill" id="exerciseProgress"></div>
+    <!-- TOP BAR -->
+    <div class="exercise-topbar">
+      <button class="btn-icon-close" id="closeExerciseRunnerBtn" title="Mashqdan chiqish">
+        <span class="svg-icon" style="width: 20px; height: 20px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </span>
+      </button>
+
+      <div class="progress-track" title="Dars rivoji">
+        <div class="progress-fill" id="exerciseProgressFill"></div>
       </div>
-      <div class="exercise-hearts" title="Jonlar">
-        <span>❤️</span>
-        <span id="exerciseHeartsCount">5</span>
+
+      <div class="exercise-hearts-status" title="Qolgan jonlar">
+        <span class="svg-icon heart-icon" style="width: 20px; height: 20px;">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </span>
+        <span id="exerciseHeartsDisplay">5</span>
       </div>
     </div>
 
-    <!-- EXERCISE CONTENT (BODY) -->
-    <div class="exercise-content" id="exerciseContent">
-      <!-- Steps rendered here: Theory, Multiple choice, Audio listening, Match pairs, Builder, Stroke canvas -->
+    <!-- CONTENT BODY (SCROLLABLE & MOBILE COMPATIBLE) -->
+    <div class="exercise-scroll-area" id="exerciseContent">
+      <!-- Dynamically rendered step cards -->
     </div>
 
-    <!-- BOTTOM EVALUATION BAR -->
-    <div class="eval-bar" id="evalBar">
-      <div class="eval-inner" id="evalInner">
-        <div class="eval-feedback" id="evalFeedback">
-          <!-- Feedback rendered on check: correct green or wrong red -->
+    <!-- BOTTOM ACTION DRAWER -->
+    <div class="action-drawer" id="actionDrawer">
+      <div class="drawer-content">
+        <div class="drawer-feedback" id="drawerFeedback">
+          <!-- Feedback check or alert icon with message -->
         </div>
-        <button class="btn-primary" id="evalActionBtn" disabled>Tekshirish</button>
+        <button class="btn-main" id="drawerActionBtn" disabled>Tekshirish</button>
       </div>
     </div>
 
   </div>
 
   <!-- ================= CELEBRATION MODAL ================= -->
-  <div class="modal-overlay" id="celebrationModal" style="display: none;">
-    <div class="modal-card" style="text-align: center;">
-      <img src="images/image18.png" class="celebration-banner-img" alt="수고하셨어요!" onerror="this.src='images/image4.jpeg'">
-      <h2 style="font-size: 1.8rem; font-weight: 900; color: var(--primary-green-dark); margin-bottom: 6px;" id="celebrationTitle">Dars Yakunlandi!</h2>
-      <p style="color: var(--text-dark); font-weight: 700; font-size: 1.1rem; margin-bottom: 20px;">
-        수고하셨어요! Bugun ham ajoyib natija ko'rsatdingiz! 🎉
+  <div class="modal-backdrop" id="celebrationModal" style="display: none;">
+    <div class="modal-dialog celebration-dialog">
+      <img src="images/image18.png" class="celeb-photo" alt="수고하셨어요!" onerror="this.src='images/image4.jpeg'">
+      <h2 id="celebLessonTitle" style="font-size: 1.55rem; font-weight: 900; margin-bottom: 4px;">Dars yakunlandi!</h2>
+      <p style="color: var(--text-muted); font-weight: 600; font-size: 0.95rem; margin-bottom: 20px;">
+        수고하셨어요! [Sugohasyeosseoyo!] Ma'ruzadagi bilimlar muvaffaqiyatli mustahkamlandi.
       </p>
 
-      <div class="stats-grid-modal">
-        <div class="modal-stat-box">
-          <div class="modal-stat-value" id="celebrationXP">+60 XP</div>
-          <div class="modal-stat-label">Olingan Ball</div>
+      <div class="celeb-stats-row">
+        <div class="celeb-box">
+          <div class="celeb-val" id="celebStarsEarned">+5</div>
+          <div class="celeb-lbl">Yulduzlar</div>
         </div>
-        <div class="modal-stat-box">
-          <div class="modal-stat-value" id="celebrationAcc">100%</div>
-          <div class="modal-stat-label">Aniqlik</div>
+        <div class="celeb-box">
+          <div class="celeb-val" id="celebAccuracyVal">100%</div>
+          <div class="celeb-lbl">Aniqlik darajasi</div>
         </div>
       </div>
 
-      <button class="btn-primary" id="closeCelebrationBtn" style="width: 100%;">Davom etish 🚀</button>
+      <button class="btn-main" id="closeCelebBtn" style="width: 100%; min-height: 52px;">Davom etish</button>
     </div>
   </div>
 
   <!-- ================= OUT OF HEARTS MODAL ================= -->
-  <div class="modal-overlay" id="outOfHeartsModal" style="display: none;">
-    <div class="modal-card" style="text-align: center; max-width: 440px;">
-      <div style="font-size: 64px; margin-bottom: 12px;">💔</div>
-      <h3 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 8px;">Jonlaringiz tugadi!</h3>
-      <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 24px;">
-        Xavotir olmang! Shirin ustoz darsida xatolar o'rganish uchun imkoniyatdir. Jonlaringizni to'ldirib davom eting!
+  <div class="modal-backdrop" id="heartsModal" style="display: none;">
+    <div class="modal-dialog" style="text-align: center; max-width: 400px;">
+      <div class="heart-modal-icon-wrap">
+        <span class="svg-icon" style="width: 32px; height: 32px;">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </span>
+      </div>
+      <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 8px;">Jonlaringiz tugadi</h3>
+      <p style="color: var(--text-muted); font-size: 0.92rem; font-weight: 500; margin-bottom: 22px; line-height: 1.45;">
+        Koreys tilini o'rganishda xatolar tabiiy hol. Jonlarni darhol tiklab, darsni davom ettirishingiz mumkin.
       </p>
-      <button class="btn-primary" id="refillHeartsBtn" style="width: 100%; background: var(--primary-red); box-shadow: 0 5px 0 var(--primary-red-dark);">
-        ❤️ Jonlarni to'ldirish (5/5)
+      <button class="btn-main" id="refillBtn" style="width: 100%; min-height: 52px; background-color: var(--accent-heart);">
+        Jonlarni to'ldirish (5/5)
       </button>
     </div>
   </div>
-
-  <!-- ================= ALPHABET CHART MODAL ================= -->
-  <div class="modal-overlay" id="alphabetModal" style="display: none;">
-    <div class="modal-card" style="max-width: 720px;">
-      <div class="modal-header">
-        <h3>Koreys Alifbosi (Hangul) To'liq Jadvali</h3>
-        <button class="close-btn modal-close-x">✕</button>
-      </div>
-      
-      <h4 style="font-weight: 900; color: var(--primary-green-dark); margin-top: 10px;">10 ta Oddiy Unlilar (모음):</h4>
-      <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">Talaffuzni eshitish uchun istalgan harf ustiga bosing:</p>
-      <div class="chart-grid" id="vowelsChartGrid"></div>
-
-      <h4 style="font-weight: 900; color: var(--primary-blue-dark); margin-top: 24px;">14 ta Oddiy Undoshlar (자음):</h4>
-      <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">Nutq a'zolari shakliga asoslangan undoshlar:</p>
-      <div class="chart-grid" id="consonantsChartGrid"></div>
-    </div>
-  </div>
-
-  <!-- ================= WORDBOOK MODAL ================= -->
-  <div class="modal-overlay" id="wordbookModal" style="display: none;">
-    <div class="modal-card" style="max-width: 760px;">
-      <div class="modal-header">
-        <h3>Ma'ruzalardagi Barcha So'zlar Lug'ati (30+ So'z)</h3>
-        <button class="close-btn modal-close-x">✕</button>
-      </div>
-      <input type="text" class="wordbook-search" placeholder="Qidirish (koreyscha, o'zbekcha yoki talaffuzi)..." oninput="filterWordbook(this.value)">
-      <div class="word-card-list" id="wordbookList"></div>
-    </div>
-  </div>
-
-  <!-- ================= SYLLABUS & COURSE RULES MODAL ================= -->
-  <div class="modal-overlay" id="syllabusModal" style="display: none;">
-    <div class="modal-card" style="max-width: 680px;">
-      <div class="modal-header">
-        <h3>Basic Korean 1 — Kurs Talablari & Qoidalari</h3>
-        <button class="close-btn modal-close-x">✕</button>
-      </div>
-      <div id="syllabusModalBody"></div>
-    </div>
-  </div>
-
-  <!-- CONFETTI CANVAS -->
-  <canvas id="confettiCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 1000;"></canvas>
 
   <!-- SCRIPTS -->
   <script src="data.js"></script>
