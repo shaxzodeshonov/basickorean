@@ -362,9 +362,11 @@ function renderSoundboard() {
   soundboardRendered = true;
 
   const vowelsGrid = document.getElementById("vowelsGrid");
+  const compoundVowelsGrid = document.getElementById("compoundVowelsGrid");
   const consonantsGrid = document.getElementById("consonantsGrid");
+  const doubleConsonantsGrid = document.getElementById("doubleConsonantsGrid");
 
-  if (vowelsGrid) {
+  if (vowelsGrid && HANGEUL_DATA.vowels) {
     vowelsGrid.innerHTML = HANGEUL_DATA.vowels.map(v => `
       <div class="soundboard-card" onclick="speakLetter('${v.char}', '${v.name}')" title="${v.uz}">
         <div class="soundboard-char">${v.char}</div>
@@ -374,12 +376,32 @@ function renderSoundboard() {
     `).join("");
   }
 
-  if (consonantsGrid) {
+  if (compoundVowelsGrid && HANGEUL_DATA.compoundVowels) {
+    compoundVowelsGrid.innerHTML = HANGEUL_DATA.compoundVowels.map(cv => `
+      <div class="soundboard-card" onclick="speakLetter('${cv.char}', '${cv.name}')" title="${cv.formula} • ${cv.uz}">
+        <div class="soundboard-char">${cv.char}</div>
+        <div class="soundboard-rom">[${cv.sound}]</div>
+        <div class="soundboard-sub" style="color: var(--accent-blue); font-weight: 700;">${cv.formula}</div>
+      </div>
+    `).join("");
+  }
+
+  if (consonantsGrid && HANGEUL_DATA.consonants) {
     consonantsGrid.innerHTML = HANGEUL_DATA.consonants.map(c => `
       <div class="soundboard-card" onclick="speakLetter('${c.char}', '${c.name}')" title="${c.organ}">
         <div class="soundboard-char">${c.char}</div>
         <div class="soundboard-rom">[${c.sound}]</div>
         <div class="soundboard-sub">${c.uz}</div>
+      </div>
+    `).join("");
+  }
+
+  if (doubleConsonantsGrid && HANGEUL_DATA.doubleConsonants) {
+    doubleConsonantsGrid.innerHTML = HANGEUL_DATA.doubleConsonants.map(dc => `
+      <div class="soundboard-card" onclick="speakLetter('${dc.char}', '${dc.name}')" title="${dc.uz}">
+        <div class="soundboard-char">${dc.char}</div>
+        <div class="soundboard-rom">[${dc.sound}]</div>
+        <div class="soundboard-sub" style="color: #b91c1c; font-weight: 700;">${dc.name}</div>
       </div>
     `).join("");
   }
@@ -394,14 +416,18 @@ function filterAlphabet(filter) {
   sfx.click();
   currentAlphabetFilter = filter;
   document.querySelectorAll("#alphabetFilterRow .filter-pill").forEach(btn => {
-    btn.classList.toggle("active", btn.getAttribute("onclick").includes(filter));
+    btn.classList.toggle("active", btn.getAttribute("onclick").includes(`'${filter}'`));
   });
 
   const vBlock = document.getElementById("vowelsBlock");
+  const cvBlock = document.getElementById("compoundVowelsBlock");
   const cBlock = document.getElementById("consonantsBlock");
+  const dcBlock = document.getElementById("doubleConsonantsBlock");
 
   if (vBlock) vBlock.style.display = (filter === "all" || filter === "vowels") ? "block" : "none";
+  if (cvBlock) cvBlock.style.display = (filter === "all" || filter === "compounds") ? "block" : "none";
   if (cBlock) cBlock.style.display = (filter === "all" || filter === "consonants") ? "block" : "none";
+  if (dcBlock) dcBlock.style.display = (filter === "all" || filter === "doubles") ? "block" : "none";
 }
 
 // --- 7. RENDER WORDBOOK TAB (LUG'AT) ---
@@ -589,6 +615,75 @@ function renderSyllabus() {
           <li><b>ㅡ (Ji / 지)</b> — Tekis Yer (Zamin)</li>
           <li><b>ㅣ (In / 인)</b> — Tik turgan Inson</li>
         </ul>
+      </div>
+    </div>
+
+    <!-- 2-MA'RUZA: DIFTONGLAR & JUFT UNDOSHLAR -->
+    <div class="syllabus-card">
+      <span class="group-badge">2-MA'RUZA ASOSLARI</span>
+      <h3 style="margin-top: 8px;">Diftonglar (11 ta) va Juft Undoshlar (5 ta)</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+        2-ma'ruzada Hangulning qolgan 16 ta harfi o'rganiladi va alifbo to'liq <b>40 ta harf</b>ga yetadi (21 unli + 19 undosh):
+      </p>
+
+      <table class="syllabus-table" style="margin-bottom: 16px;">
+        <thead>
+          <tr>
+            <th>Diftong</th>
+            <th>Formulasi</th>
+            <th>O'qilishi</th>
+            <th>Misol</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><b>ㅐ</b></td><td>ㅏ + ㅣ</td><td>[ae / e]</td><td>배 (bae - nok)</td></tr>
+          <tr><td><b>ㅒ</b></td><td>ㅑ + ㅣ</td><td>[yae]</td><td>얘기 (yaegi - suhbat)</td></tr>
+          <tr><td><b>ㅔ</b></td><td>ㅓ + ㅣ</td><td>[e]</td><td>가게 (gage - do'kon)</td></tr>
+          <tr><td><b>ㅖ</b></td><td>ㅕ + ㅣ</td><td>[ye]</td><td>시계 (sigye - soat)</td></tr>
+          <tr><td><b>ㅘ</b></td><td>ㅗ + ㅏ</td><td>[wa]</td><td>사과 (sagwa - olma)</td></tr>
+          <tr><td><b>ㅙ</b></td><td>ㅗ + ㅐ</td><td>[wae]</td><td>돼지 (dwaeji - cho'chqa)</td></tr>
+          <tr><td><b>ㅚ</b></td><td>ㅗ + ㅣ</td><td>[we]</td><td>회사 (hoesa - firma)</td></tr>
+          <tr><td><b>ㅝ</b></td><td>ㅜ + ㅓ</td><td>[wo]</td><td>더워요 (deowoyo - issiq)</td></tr>
+          <tr><td><b>ㅞ</b></td><td>ㅜ + ㅔ</td><td>[we]</td><td>웨이터 (weiteo)</td></tr>
+          <tr><td><b>ㅟ</b></td><td>ㅜ + ㅣ</td><td>[wi]</td><td>뒤 (dwi - orqa)</td></tr>
+          <tr><td><b>ㅢ</b></td><td>ㅡ + ㅣ</td><td>[ui / i]</td><td>의자 (uija - stul)</td></tr>
+        </tbody>
+      </table>
+
+      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px;">
+        <h4 style="font-weight: 800; margin-bottom: 8px; color: #b91c1c;">5 ta Juft Undosh (쌍자음):</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; font-size: 0.88rem;">
+          <div><b>ㄲ [kk]</b>: 꼬리 (dum)</div>
+          <div><b>ㄸ [tt]</b>: 떡 (tteok)</div>
+          <div><b>ㅃ [pp]</b>: 오빠 (aka)</div>
+          <div><b>ㅆ [ss]</b>: 싸다 (arzon)</div>
+          <div><b>ㅉ [jj]</b>: 찌개 (sho'rva)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BO'G'IN TUZILISHI & XAYRLASHISH ODOBI -->
+    <div class="syllabus-card">
+      <span class="group-badge">2-MA'RUZA ASOSLARI</span>
+      <h3 style="margin-top: 8px;">Bo'g'in (음절) Strukturasi va Xayrlashish</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+        Koreys tili bo'g'inlarida unli va undoshlar doimo kvadrat shaklida birlashadi:
+      </p>
+
+      <ul class="theory-bullet-list" style="margin-bottom: 16px;">
+        <li><b>V (Faqat unli)</b>: Oldiga ovozsiz 'ㅇ' qo'yiladi: <b>오</b> (5), <b>이</b> (2), <b>아이</b> (bola).</li>
+        <li><b>CV (Tik unli)</b>: Undosh chapda, unli o'ngda: <b>가</b>, <b>나</b>, <b>차</b>, <b>허리</b>.</li>
+        <li><b>CV (Yotiq unli)</b>: Undosh tepada, unli ostida: <b>소</b>, <b>무</b>, <b>포도</b>, <b>모자</b>.</li>
+        <li><b>VC (Pastki undosh)</b>: Unli ustida, undosh pastda: <b>입</b> (og'iz), <b>열</b> (10), <b>음</b> (tovush).</li>
+        <li><b>CVC (Batchim)</b>: Bo'g'in ostida pastki undosh (받침) joylashadi: <b>집</b> (uy), <b>산</b> (tog'), <b>공</b> (koptok), <b>물</b> (suv).</li>
+      </ul>
+
+      <div style="background: #fdf8f6; border: 1px solid #fecdd3; border-radius: var(--radius-md); padding: 14px;">
+        <h4 style="font-weight: 800; margin-bottom: 8px; color: #9f1239;">Koreyscha Xayrlashish Odobi (Muhim!):</h4>
+        <p style="font-size: 0.88rem; line-height: 1.5; color: var(--text-main);">
+          • <b>안녕히 가세요 [Annyeonghi gaseyo]</b>: Ketayotgan insonga aytiladi ("Yaxshi boring", fe'l: 가다).<br>
+          • <b>안녕히 계세요 [Annyeonghi gyeseyo]</b>: Joyida qolayotgan insonga aytiladi ("Yaxshi qoling", fe'l: 계시다).
+        </p>
       </div>
     </div>
   `;
@@ -1064,11 +1159,13 @@ class ExerciseRunner {
     }
 
     if (step.type === "builder") {
-      const formed = this.builderAnswer.map(t => t.innerText).join("");
-      const isCorrect = formed === step.targetWord;
+      const formed = this.builderAnswer.map(t => t.innerText.trim()).join("");
+      const target = (step.targetWord || step.target || "").replace(/\s+/g, "");
+      const isCorrect = formed === target;
+      const targetDisplay = step.targetWord || step.target;
       const expl = isCorrect
-        ? `To'g'ri! «${step.targetWord}» so'zi muvaffaqiyatli tuzildi.`
-        : `Noto'g'ri. To'g'ri so'z: «${step.targetWord}». (${step.explanation || ""})`;
+        ? `To'g'ri! «${targetDisplay}» so'zi muvaffaqiyatli tuzildi.`
+        : `Noto'g'ri. To'g'ri so'z: «${targetDisplay}». (${step.explanation || ""})`;
       this.showEvaluation(isCorrect, expl);
       return;
     }
@@ -1149,6 +1246,13 @@ class ExerciseRunner {
 
     const total = this.lesson.steps.length;
     const acc = Math.max(50, Math.round(((total - this.mistakesCount) / total) * 100));
+
+    const photoEl = document.getElementById("celebPhotoImg");
+    if (photoEl) {
+      photoEl.src = (this.lesson.id.startsWith("lesson_4") || this.lesson.id.startsWith("lesson_5") || this.lesson.id.startsWith("lesson_6"))
+        ? "images/part2/image26.png"
+        : "images/image18.png";
+    }
 
     if (titleEl) titleEl.innerText = `${this.lesson.title} tugallandi!`;
     if (starsEl) starsEl.innerText = `+${5 + total} ball`;

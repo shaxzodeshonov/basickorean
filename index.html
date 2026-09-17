@@ -39,7 +39,7 @@
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </span>
-          <span id="headerProgressCount">0/12</span>
+          <span id="headerProgressCount">0/20</span>
         </div>
 
         <div class="stat-chip hearts" id="headerHeartsChip" onclick="state.refillHearts()" role="button" tabindex="0" title="Jonlar (bosing - to'ldirish)">
@@ -104,25 +104,43 @@
         </div>
 
         <div class="filter-pills-row" id="alphabetFilterRow">
-          <button class="filter-pill active" onclick="filterAlphabet('all')">Barchasi (24)</button>
-          <button class="filter-pill" onclick="filterAlphabet('vowels')">10 ta Unli (모음)</button>
-          <button class="filter-pill" onclick="filterAlphabet('consonants')">14 ta Undosh (자음)</button>
+          <button class="filter-pill active" onclick="filterAlphabet('all')">Barchasi (40)</button>
+          <button class="filter-pill" onclick="filterAlphabet('vowels')">10 ta Oddiy unli</button>
+          <button class="filter-pill" onclick="filterAlphabet('compounds')">11 ta Diftong</button>
+          <button class="filter-pill" onclick="filterAlphabet('consonants')">14 ta Oddiy undosh</button>
+          <button class="filter-pill" onclick="filterAlphabet('doubles')">5 ta Juft undosh</button>
         </div>
 
         <div class="alphabet-group" id="vowelsBlock">
           <div class="group-header">
-            <span class="group-badge">10 TA ODDIY UNLILAR (모음)</span>
+            <span class="group-badge">10 TA ODDIY UNLILAR (기본 모음)</span>
             <span class="group-hint">3 falsafiy element: • (Osmon), ㅡ (Yer), ㅣ (Inson)</span>
           </div>
           <div class="soundboard-grid" id="vowelsGrid"></div>
         </div>
 
+        <div class="alphabet-group" id="compoundVowelsBlock" style="margin-top: 28px;">
+          <div class="group-header">
+            <span class="group-badge">11 TA DIFTONGLAR (복합 모음)</span>
+            <span class="group-hint">Oddiy unlilarning birlashuvidan hosil bo'lgan murakkab unlilar</span>
+          </div>
+          <div class="soundboard-grid" id="compoundVowelsGrid"></div>
+        </div>
+
         <div class="alphabet-group" id="consonantsBlock" style="margin-top: 28px;">
           <div class="group-header">
-            <span class="group-badge">14 TA ODDIY UNDOSHLAR (자음)</span>
+            <span class="group-badge">14 TA ODDIY UNDOSHLAR (기본 자음)</span>
             <span class="group-hint">Nutq a'zolari (til, lab, tish, tomoq) shakli asosida yaratilgan</span>
           </div>
           <div class="soundboard-grid" id="consonantsGrid"></div>
+        </div>
+
+        <div class="alphabet-group" id="doubleConsonantsBlock" style="margin-top: 28px;">
+          <div class="group-header">
+            <span class="group-badge">5 TA JUFT UNDOSHLAR (쌍자음)</span>
+            <span class="group-hint">Portlovchi, bo'g'iq va zarbli qattiq undoshlar</span>
+          </div>
+          <div class="soundboard-grid" id="doubleConsonantsGrid"></div>
         </div>
       </div>
     </section>
@@ -242,7 +260,7 @@
   <!-- ================= CELEBRATION MODAL ================= -->
   <div class="modal-backdrop" id="celebrationModal" style="display: none;">
     <div class="modal-dialog celebration-dialog">
-      <img src="images/image18.png" class="celeb-photo" alt="수고하셨어요!" onerror="this.src='images/image4.jpeg'">
+      <img src="images/image18.png" id="celebPhotoImg" class="celeb-photo" alt="수고하셨어요!" onerror="this.src='images/image4.jpeg'">
       <h2 id="celebLessonTitle" style="font-size: 1.55rem; font-weight: 900; margin-bottom: 4px;">Dars yakunlandi!</h2>
       <p style="color: var(--text-muted); font-weight: 600; font-size: 0.95rem; margin-bottom: 20px;">
         수고하셨어요! [Sugohasyeosseoyo!] Ma'ruzadagi bilimlar muvaffaqiyatli mustahkamlandi.
