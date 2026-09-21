@@ -119,9 +119,9 @@ const HANGEUL_DATA = {
     {
       "char": "ㅓ",
       "name": "어",
-      "sound": "eo / o'",
+      "sound": "eo / o",
       "rom": "eo",
-      "uz": "Ochiq 'O'' tovushi (og'iz 'a' kabi ochiladi)",
+      "uz": "Ochiq 'O' tovushi (og'iz 'a' kabi ochiladi)",
       "strokeCount": 2,
       "order": [
         "1. Chapdan o'ngga qisqa chiziq",
@@ -132,9 +132,9 @@ const HANGEUL_DATA = {
     {
       "char": "ㅕ",
       "name": "여",
-      "sound": "yeo / yo'",
+      "sound": "yeo / yo",
       "rom": "yeo",
-      "uz": "Ochiq 'YO'' tovushi",
+      "uz": "Ochiq 'YO' tovushi",
       "strokeCount": 3,
       "order": [
         "1. Yuqori chap chiziq",
@@ -146,9 +146,9 @@ const HANGEUL_DATA = {
     {
       "char": "ㅗ",
       "name": "오",
-      "sound": "o",
+      "sound": "o' / o",
       "rom": "o",
-      "uz": "Dudoqlangan 'O' (lablar oldinga cho'chchayadi)",
+      "uz": "Dudoqlangan 'O'' (lablar oldinga cho'chchayadi)",
       "strokeCount": 2,
       "order": [
         "1. Qisqa tik chiziq",
@@ -159,9 +159,9 @@ const HANGEUL_DATA = {
     {
       "char": "ㅛ",
       "name": "요",
-      "sound": "yo",
+      "sound": "yo' / yo",
       "rom": "yo",
-      "uz": "Dudoqlangan 'YO'",
+      "uz": "Dudoqlangan 'YO''",
       "strokeCount": 3,
       "order": [
         "1. Chap qisqa chiziq",
@@ -1145,8 +1145,8 @@ const HANGEUL_DATA = {
           "explanation": "Koreys tilida harflar chapdan o'ngga yoki yuqoridan pastga yoziladi. Unli yakka o'zi kelganda oldiga tovushsiz doira qo'yiladi: <b>아, 야, 어, 여, 오, 요, 우, 유, 으, 이</b>.",
           "points": [
             "ㅏ [A] va ㅑ [YA] — Vertikal chiziqning o'ng tomonida",
-            "ㅓ [O'] va ㅕ [YO'] — Vertikal chiziqning chap tomonida",
-            "ㅗ [O] va ㅛ [YO] — Gorizontal chiziqning yuqorisida",
+            "ㅓ [O] va ㅕ [YO] — Vertikal chiziqning chap tomonida",
+            "ㅗ [O'] va ㅛ [YO'] — Gorizontal chiziqning yuqorisida",
             "ㅜ [U] va ㅠ [YU] — Gorizontal chiziqning pastida",
             "ㅡ [I / tishlar jipslashgan] va ㅣ [I / oddiy]"
           ]
@@ -1157,8 +1157,8 @@ const HANGEUL_DATA = {
           "audio": "아",
           "options": [
             "ㅏ (A)",
-            "ㅓ (O')",
-            "ㅗ (O)",
+            "ㅓ (O)",
+            "ㅗ (O')",
             "ㅜ (U)"
           ],
           "correct": 0,
@@ -1169,22 +1169,22 @@ const HANGEUL_DATA = {
           "question": "Qaysi unli talaffuz qilindi?",
           "audio": "어",
           "options": [
-            "ㅓ (O')",
+            "ㅓ (O)",
             "ㅏ (A)",
             "ㅡ (I)",
             "ㅣ (I)"
           ],
           "correct": 0,
-          "explanation": "ㅓ — ochiq 'O'' tovushi."
+          "explanation": "ㅓ — ochiq 'O' tovushi."
         },
         {
           "type": "choice",
           "question": "'ㅜ' [U] harfiga bitta vertikal chiziq qo'shilsa qaysi harf hosil bo'ladi?",
           "options": [
             "ㅠ (YU)",
-            "ㅛ (YO)",
+            "ㅛ (YO')",
             "ㅑ (YA)",
-            "ㅕ (YO')"
+            "ㅕ (YO)"
           ],
           "correct": 0,
           "explanation": "ㅜ (U) ga bitta chiziq qo'shilsa ㅠ (YU) bo'ladi."
@@ -1209,11 +1209,11 @@ const HANGEUL_DATA = {
             },
             {
               "k": "ㅓ",
-              "v": "O' (eo)"
+              "v": "O (eo)"
             },
             {
               "k": "ㅗ",
-              "v": "O"
+              "v": "O'"
             },
             {
               "k": "ㅜ",
@@ -2795,7 +2795,7 @@ const HANGEUL_DATA = {
       "sound": "wo",
       "rom": "wo",
       "formula": "ㅜ + ㅓ = ㅝ",
-      "uz": "'WO' tovushi (U + O' birikmasi)",
+      "uz": "'WO' tovushi (U + O birikmasi)",
       "strokeCount": 4,
       "order": [
         "1. Gorizontal yotiq chiziq",
